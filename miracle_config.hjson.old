@@ -1,12 +1,38 @@
 {
+    //version number must be present to prevent the Makerware sliceconfig script from complaining
     "version": "5.29.1",
+    
+    //
     "_bot": "replicator_5",
     "_extruders": ["mk13"],
-    "_materials": ["pla"],    
+    "_materials": ["pla"], 
+
+   
     "adjacentFillLeakyConnections": true,
+    // type: boolean
+    // default: false
+    // description: 
+    //     When true, do not extrude between adjacent infill lines. Which lines are 
+    //     considered adjacent is determined by adjacentFillLeakyDistanceRatio.
+
+    
+    // Two fill lines are considered adjacent when the connection between them is shorter than the product 
+    // of this value and the extrusion width.
     "adjacentFillLeakyDistanceRatio": 1.4,
+    
+    // When generated support structures are larger than this area, we can save time and print material
+    // while ensuring print success.  We taper the support structure in from area at that point until 
+    // this threshold.  Once the area is smaller than this, we create support structures as columns like default.",
     "areaToTaperSupportsIn": 9223372036854775807,
+    
+    // When generated support structures are smaller than this area, the base or footprint is not sturdy 
+    // enough and may fall over.  We taper the support structure out from original area until this threshold.  
+    // Once the area is larger than this, we create support structures as columns like default.  (creates 
+    // pencil looking structures that balance adhesion/lateral stability while limiting excess amount of 
+    // footprint/support base that attaches to build plate or model material).",
     "areaToTaperSupportsOut": 0.0,
+    
+    
     "backlashEpsilon": 0.05,
     "backlashFeedback": 0.9,
     "backlashX": 0.0,
