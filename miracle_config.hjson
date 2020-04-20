@@ -1,12 +1,9 @@
 {
+    // version declares which version of miracle_grue this configuration is for.
     version: 5.29.1
     _bot: replicator_5
-    _extruders: [
-        mk13
-    ]
-    _materials: [
-        pla
-    ]
+    _extruders: [ "mk13" ]
+    _materials: [ "pla"  ]
     
     // adjacentFillLeakyConnections
     // default: false
@@ -82,7 +79,7 @@
     // step: 0.01
     // type: Scalar
     // unit: mm
-    bedZOffset: 0
+    bedZOffset: -0.5
     
     // bridgeAnchorMinimumLength
     // dependency: doBridging
@@ -192,7 +189,7 @@
     // description: Select to print your model with easy to remove supports
     // group: Support
     // type: boolean
-    doBreakawaySupport: false
+    doBreakawaySupport: true
     
     // Bridging
     // default: false
@@ -285,7 +282,7 @@
     // Raft
     // description: Select to print your model on a raft
     // type: boolean
-    doRaft: true
+    doRaft: false
     
     // Limit Maximum Command Rate
     // default: false
@@ -302,7 +299,7 @@
     // description: Select to print your model with automatically generated support structures
     // group: Support
     // type: boolean
-    doSupport: false
+    doSupport: true
     
     // doSupportEdgeFollow
     // default: false
