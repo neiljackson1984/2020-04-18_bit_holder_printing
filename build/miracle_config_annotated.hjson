@@ -3,18 +3,26 @@
     /* THIS ELEMENT IS NOT SPECIFIED IN THE SCHEMA.
      */
     _bot: replicator_5
+    // same as value in old config
     
     /* THIS ELEMENT IS NOT SPECIFIED IN THE SCHEMA.
      */
     _extruders: [
         mk13
     ]
+    // value in old config: [
+    //   0
+    // ]
     
     /* THIS ELEMENT IS NOT SPECIFIED IN THE SCHEMA.
      */
     _materials: [
         pla
     ]
+    // value in old config: [
+    //   pla
+    //   pla
+    // ]
     
     /* adjacentFillLeakyConnections
      * default: false
@@ -22,6 +30,7 @@
      * type: boolean
      */
     adjacentFillLeakyConnections: true
+    // same as value in old config
     
     /* adjacentFillLeakyDistanceRatio
      * dependency: adjacentFillLeakyConnections
@@ -32,6 +41,7 @@
      * type: Scalar
      */
     adjacentFillLeakyDistanceRatio: 1.4
+    // same as value in old config
     
     /* areaToTaperSupportsIn (NEW IN SCHEMA)
      * name: Maximum Area To Taper Supports In
@@ -63,6 +73,7 @@
      * type: Scalar
      */
     backlashEpsilon: 0.05
+    // same as value in old config
     
     /* backlashFeedback
      * default: false
@@ -73,6 +84,7 @@
      * type: Scalar
      */
     backlashFeedback: 0.9
+    // same as value in old config
     
     /* backlashX
      * dependency: doBacklashCompensation
@@ -82,6 +94,7 @@
      * type: Scalar
      */
     backlashX: 0
+    // same as value in old config
     
     /* backlashY
      * dependency: doBacklashCompensation
@@ -91,6 +104,7 @@
      * type: Scalar
      */
     backlashY: 0.09
+    // same as value in old config
     
     /* baseLayerExtruder (NEW IN SCHEMA)
      * name: Extruder with which to print the base layer
@@ -130,7 +144,8 @@
      * type: Scalar
      * unit: mm
      */
-    bedZOffset: -0.5
+    bedZOffset: -0.4
+    // value in old config: -0.72
     
     /* bridgeAnchorMinimumLength
      * dependency: doBridging
@@ -140,6 +155,7 @@
      * type: Scalar
      */
     bridgeAnchorMinimumLength: 0.8
+    // same as value in old config
     
     /* bridgeAnchorWidth
      * dependency: doBridging
@@ -149,6 +165,7 @@
      * type: Scalar
      */
     bridgeAnchorWidth: 0.8
+    // same as value in old config
     
     /* bridgeMaximumLength
      * name: Maximum Bridge Length
@@ -162,6 +179,7 @@
      * unit: mm
      */
     bridgeMaximumLength: 80
+    // same as value in old config
     
     /* bridgeRasterCellPerMM (NEW IN SCHEMA)
      * default: 8.0
@@ -238,6 +256,7 @@
      * unit: mm
      */
     coarseness: 0.0001
+    // value in old config: 9.999999747378752e-05
     
     /* configPath
      * default: ""
@@ -266,6 +285,7 @@
      * type: unsigned_integer
      */
     defaultExtruder: 0
+    // same as value in old config
     
     /* defaultSupportMaterial
      * name: Support Material Extruder
@@ -277,12 +297,14 @@
      * type: unsigned_integer
      */
     defaultSupportMaterial: 0
+    // same as value in old config
     
     /* doBacklashCompensation
      * default: false
      * type: boolean
      */
     doBacklashCompensation: false
+    // same as value in old config
     
     /* doBreakawaySupport
      * name: Breakaway Support
@@ -292,6 +314,7 @@
      * type: boolean
      */
     doBreakawaySupport: true
+    // same as value in old config
     
     /* doBridging
      * name: Bridging
@@ -300,6 +323,7 @@
      * type: boolean
      */
     doBridging: true
+    // same as value in old config
     
     /* doBrims (NEW IN SCHEMA)
      * name: Brims
@@ -318,12 +342,14 @@
      * type: boolean
      */
     doExponentialDeceleration: true
+    // same as value in old config
     
     /* doExternalSpurs
      * default: true
      * type: boolean
      */
     doExternalSpurs: true
+    // same as value in old config
     
     /* doFanCommand
      * name: Use Active Cooling
@@ -332,6 +358,7 @@
      * type: boolean
      */
     doFanCommand: true
+    // same as value in old config
     
     /* doFanModulation
      * default: false
@@ -339,6 +366,7 @@
      * type: boolean
      */
     doFanModulation: true
+    // same as value in old config
     
     /* doFixedLayerStart
      * name: Fixed Layer Starting Point
@@ -347,6 +375,7 @@
      * type: boolean
      */
     doFixedLayerStart: false
+    // same as value in old config
     
     /* doFixedShellStart
      * name: Fixed Shell Starting Point
@@ -354,13 +383,15 @@
      * description: Start each shell at the vertex farmost in the direction specified by Fixed Shell Starting Point. If not selected, the starting point will be chosen for optimal ordering, and may cause the zipper to be a different place on every layer.
      * type: boolean
      */
-    doFixedShellStart: true
+    doFixedShellStart: false
+    // same as value in old config
     
     /* doInternalSpurs
      * default: false
      * type: boolean
      */
     doInternalSpurs: false
+    // same as value in old config
     
     /* doMinfill (NEW IN SCHEMA)
      * default: false
@@ -375,6 +406,7 @@
      * type: boolean
      */
     doMixedRaft: false
+    // same as value in old config
     
     /* doMixedSupport
      * name: Mixed Material Support
@@ -382,6 +414,7 @@
      * type: boolean
      */
     doMixedSupport: false
+    // same as value in old config
     
     /* doPaddedBase (NEW IN SCHEMA)
      * name: Padded Base
@@ -389,7 +422,7 @@
      * description: Select to have first-layer shells and floors filled in with baseLayerWidth of 2.5.  Useful better floors when printing with brims.  Useful for stronger adhesion when printing raft-less/brims-less.  Useful for printing when precise build plate leveling is not of interest/possible.
      * type: boolean
      */
-    doPaddedBase: false
+    doPaddedBase: true
     
     /* doPurgeEarlyEnd (NEW IN SCHEMA)
      * name: Purge Early End
@@ -405,6 +438,7 @@
      * type: boolean
      */
     doPurgeWall: false
+    // same as value in old config
     
     /* doRaft
      * name: Raft
@@ -412,6 +446,7 @@
      * type: boolean
      */
     doRaft: false
+    // same as value in old config
     
     /* doRateLimit (NEW IN SCHEMA)
      * name: Limit Maximum Command Rate
@@ -437,6 +472,7 @@
      * type: boolean
      */
     doSplitLongMoves: false
+    // value in old config: true
     
     /* doStickyMaterialSwitching (NEW IN SCHEMA)
      * name: When moving up in Z-height, print with the last-used material first to minimize toolchanges.
@@ -456,6 +492,7 @@
      * type: boolean
      */
     doSupport: true
+    // same as value in old config
     
     /* doSupportEdgeFollow (NEW IN SCHEMA)
      * default: false
@@ -472,6 +509,7 @@
      * type: boolean
      */
     doSupportUnderBridges: false
+    // same as value in old config
     
     /* doZHopAndRetractCombo (NEW IN SCHEMA)
      * default: false
@@ -504,6 +542,7 @@
      * unit: mm/s
      */
     exponentialDecelerationMinSpeed: 0
+    // same as value in old config
     
     /* exponentialDecelerationRatio
      * default: 0.0
@@ -514,6 +553,7 @@
      * type: Scalar
      */
     exponentialDecelerationRatio: 0.375
+    // same as value in old config
     
     /* exponentialDecelerationSegmentCount
      * default: 20
@@ -524,6 +564,7 @@
      * type: unsigned_integer
      */
     exponentialDecelerationSegmentCount: 10
+    // same as value in old config
     
     /* extruderProfiles
      * description: ""
@@ -622,7 +663,7 @@
                      * type: Scalar
                      * unit: mm/s
                      */
-                    feedrate: 50
+                    feedrate: 5
                     
                     /* oozeFeedstockDistance (NEW IN SCHEMA)
                      * description: How much plastic, in mm of feedstock, to allow to ooze out at the end of an extrusion. Use this value if different from the one specified for the extruder.
@@ -3454,6 +3495,42 @@
              */
         }
     ]
+    // value in old config: [
+    //   {
+    //     bridgesExtrusionProfile: bridges
+    //     feedDiameter: 1.769999980926514
+    //     feedstockMultiplier: 1.0
+    //     firstLayerExtrusionProfile: firstLayer
+    //     firstLayerRaftExtrusionProfile: firstLayerRaft
+    //     floorSurfaceFillsExtrusionProfile: floorSurfaceFills
+    //     infillsExtrusionProfile: infill
+    //     insetsExtrusionProfile: insets
+    //     layerHeight: 0.2
+    //     maxSparseFillThickness: 0.4
+    //     nozzleDiameter: 0.4
+    //     oozeFeedstockDistance: 0.1000000014901161
+    //     outlinesExtrusionProfile: outlines
+    //     preOozeFeedstockDistance: 0.1000000014901161
+    //     raftBaseExtrusionProfile: raftBase
+    //     raftExtrusionProfile: raft
+    //     restartExtraDistance: 0.1000000014901161
+    //     restartExtraDistance2: 0
+    //     restartExtraRate: 30.0
+    //     restartExtraRate2: -1
+    //     restartRate: 30.0
+    //     restartRate2: 30
+    //     retractDistance: 1.0
+    //     retractDistance2: 0
+    //     retractRate: 50.0
+    //     retractRate2: 50
+    //     roofSurfaceFillsExtrusionProfile: roofSurfaceFills
+    //     sparseRoofSurfaceFillsExtrusionProfile: sparseRoofSurfaceFills
+    //     toolchangeRestartDistance: 18.5
+    //     toolchangeRestartRate: 6.0
+    //     toolchangeRetractDistance: 19.0
+    //     toolchangeRetractRate: 6.0
+    //   }
+    // ]
     
     /* fanDefaultSpeed
      * name: Fan Power
@@ -3466,6 +3543,7 @@
      * unit: % Max Power
      */
     fanDefaultSpeed: 0.5
+    // same as value in old config
     
     /* fanLayer
      * name: Fan Layer
@@ -3477,6 +3555,7 @@
      * type: unsigned_integer
      */
     fanLayer: 1
+    // same as value in old config
     
     /* fanModulationThreshold
      * dependency: doFanModulation
@@ -3487,6 +3566,7 @@
      * type: Scalar
      */
     fanModulationThreshold: 0.5
+    // same as value in old config
     
     /* fanModulationWindow
      * dependency: doFanModulation
@@ -3498,6 +3578,7 @@
      * unit: s
      */
     fanModulationWindow: 0.1
+    // same as value in old config
     
     /* fixedLayerStartX
      * name: Layer Starting Point (X)
@@ -3510,6 +3591,7 @@
      * unit: mm
      */
     fixedLayerStartX: 0
+    // same as value in old config
     
     /* fixedLayerStartY
      * name: Layer Starting Point (Y)
@@ -3522,6 +3604,7 @@
      * unit: mm
      */
     fixedLayerStartY: 0
+    // same as value in old config
     
     /* fixedShellStartDirection
      * name: Shell Starting Point (degrees)
@@ -3534,6 +3617,7 @@
      * unit: degree
      */
     fixedShellStartDirection: 215
+    // same as value in old config
     
     /* floorSolidLayerCount
      * description: See floorSolidThickness.  Overrides floorSolidThickness if set
@@ -3551,6 +3635,7 @@
      * unit: mm
      */
     floorSolidThickness: 0
+    // same as value in old config
     
     /* floorSurfaceLayerCount
      * description: See floorSurfaceThickness.  Overrides floorSurfaceThickness if set
@@ -3568,6 +3653,7 @@
      * unit: mm
      */
     floorSurfaceThickness: 0.8
+    // value in old config: 0
     
     /* floorThickness (DELETED FROM SCHEMA, BUT YOU HAVE STILL SPECIFIED A VALUE)
      * name: Floor Thickness
@@ -3583,6 +3669,7 @@
      * widget: spinbox
      */
     floorThickness: 0.8
+    // value in old config: 0.800000011920929
     
     /* horizontalInset (NEW IN SCHEMA)
      * default: 0
@@ -3601,6 +3688,7 @@
      * unit: mm
      */
     layerHeight: 0.2
+    // value in old config: 0.2000000029802322
     
     /* leakyConnectionsAdjacentDistance
      * default: 0
@@ -3609,6 +3697,7 @@
      * unit: mm
      */
     leakyConnectionsAdjacentDistance: 0.8
+    // same as value in old config
     
     /* lowSpeedShellMin (NEW IN SCHEMA)
      * name: Low Speed Shell Minimum
@@ -3632,6 +3721,7 @@
      * type: Scalar
      */
     maxConnectionLength: 10
+    // same as value in old config
     
     /* maxSmartAngleDegs (NEW IN SCHEMA)
      * name: Maximum Smart Zipper Angle in Degrees
@@ -3656,6 +3746,7 @@
      * type: Scalar
      */
     maxSpurWidth: 0.5
+    // same as value in old config
     
     /* memoryThreshold
      * description: Avoid using significantly more than this many megabytes of memory
@@ -3673,6 +3764,7 @@
      * unit: s
      */
     minLayerDuration: 5
+    // same as value in old config
     
     /* minPrintableArea (NEW IN SCHEMA)
      * default: 5.0
@@ -3693,6 +3785,7 @@
      * unit: mm
      */
     minRaftBaseGap: 10
+    // value in old config: 0.0
     
     /* minSparseRegionArea (NEW IN SCHEMA)
      * name: Minimum Sparse Region Area
@@ -3713,6 +3806,7 @@
      * type: Scalar
      */
     minSpeedMultiplier: 0.3
+    // same as value in old config
     
     /* minSplitChunkPrintableArea (NEW IN SCHEMA)
      * default: 1.0
@@ -3729,6 +3823,7 @@
      * type: Scalar
      */
     minSpurLength: 0.34
+    // same as value in old config
     
     /* minSpurWidth
      * max: 1.0
@@ -3737,6 +3832,7 @@
      * type: Scalar
      */
     minSpurWidth: 0.12
+    // same as value in old config
     
     /* minThickInfillImprovement
      * default: 1.0
@@ -3745,6 +3841,7 @@
      * unit: mm
      */
     minThickInfillImprovement: 1
+    // same as value in old config
     
     /* minfillDisappearingFractionTest (NEW IN SCHEMA)
      * default: 0.7
@@ -5737,7 +5834,7 @@
              * step: 0.01
              * type: Scalar
              */
-            density: 0.1
+            density: 0.3
             
             /* diamondFillTurnDistance
              * default: 0.4
@@ -6291,6 +6388,7 @@
              */
         }
     }
+    // value in old config: {}
     
     /* modelShellProfiles (NEW IN SCHEMA)
      * description: Model shell profiles for surface, solid, and sparse
@@ -6348,7 +6446,7 @@
              * description: Extrusion Profile to use for the inner shells
              * type: string
              */
-            innerExtrusionProfile: raft_base
+            innerExtrusionProfile: base_layer_surface
             
             /* insetDistanceMultiplier (NEW IN SCHEMA)
              * name: Inset Distance Multiplier
@@ -6375,7 +6473,7 @@
              * description: Extrusion Profile to use for the outer shell
              * type: string
              */
-            outerExtrusionProfile: raft_base
+            outerExtrusionProfile: base_layer_surface
         }
         extent: {
             
@@ -6826,7 +6924,7 @@
      * type: Scalar
      * unit: mm
      */
-    // VALUE NOT SPECIFIED
+    paddedBaseWidth: 2
     
     /* pauseHeights (NEW IN SCHEMA)
      * default: []
@@ -6859,6 +6957,7 @@
      * unit: mm
      */
     purgeWallBaseFilamentWidth: 2
+    // same as value in old config
     
     /* purgeWallWidth (DELETED FROM SCHEMA, BUT YOU HAVE STILL SPECIFIED A VALUE)
      * name: Wall Width
@@ -6875,6 +6974,7 @@
      * widget: spinbox
      */
     purgeWallWidth: 1
+    // value in old config: 0.5
     
     /* THIS ELEMENT IS NOT SPECIFIED IN THE SCHEMA.
      */
@@ -6906,6 +7006,7 @@
      * unit: mm
      */
     raftExtraOffset: 0
+    // same as value in old config
     
     /* raftFillProfiles
      * default: ""
@@ -8094,6 +8195,7 @@
              */
         }
     }
+    // value in old config: {}
     
     /* THIS ELEMENT IS NOT SPECIFIED IN THE SCHEMA.
      */
@@ -8121,6 +8223,7 @@
      * unit: mm
      */
     raftModelSpacing: 0.26
+    // value in old config: 0.2899999916553497
     
     /* raftProfiles (NEW IN SCHEMA)
      * default: ""
@@ -8890,6 +8993,7 @@
      * unit: mm
      */
     roofAnchorMargin: 0.4
+    // same as value in old config
     
     /* roofSolidLayerCount
      * description: See roofSolidThickness.  Overrides roofSolidThickness if set
@@ -8907,6 +9011,7 @@
      * unit: mm
      */
     roofSolidThickness: 0
+    // same as value in old config
     
     /* roofSurfaceLayerCount
      * description: See roofSurfaceThickness.  Overrides roofSurfaceThickness if set
@@ -8924,6 +9029,7 @@
      * unit: mm
      */
     roofSurfaceThickness: 0.8
+    // value in old config: 0
     
     /* roofThickness (DELETED FROM SCHEMA, BUT YOU HAVE STILL SPECIFIED A VALUE)
      * name: Roof Thickness
@@ -8939,6 +9045,7 @@
      * widget: spinbox
      */
     roofThickness: 0.8
+    // value in old config: 0.800000011920929
     
     /* shellStartOffset (NEW IN SCHEMA)
      * name: Travel Offset from Shell Starting Point
@@ -8953,6 +9060,7 @@
      * type: boolean
      */
     shellsLeakyConnections: true
+    // same as value in old config
     
     /* solidFillErosionDistance (NEW IN SCHEMA)
      * default: 0.04
@@ -8973,6 +9081,7 @@
      * type: Scalar
      */
     splitMinimumDistance: 0.4
+    // same as value in old config
     
     /* startGcode
      * default: ""
@@ -9034,6 +9143,7 @@
          */
         z: 0.2
     }
+    // same as value in old config
     
     /* supportAngle
      * name: Support Angle
@@ -9045,6 +9155,7 @@
      * type: Scalar
      */
     supportAngle: 68
+    // same as value in old config
     
     /* supportBreakawayModelRoofSpacing
      * default: 0
@@ -9087,6 +9198,7 @@
      * unit: mm
      */
     supportExtraDistance: 0.5
+    // value in old config: 1.0
     
     /* supportFillProfiles
      * default: ""
@@ -10570,6 +10682,7 @@
              */
         }
     }
+    // value in old config: {}
     
     /* supportFloorSolidLayerCount
      * type: unsigned_integer
@@ -10636,6 +10749,7 @@
      * unit: mm
      */
     supportLayerHeight: 0.2
+    // value in old config: 0.2000000029802322
     
     /* supportLeakyConnections
      * name: Leaky Connections
@@ -10645,6 +10759,7 @@
      * type: boolean
      */
     supportLeakyConnections: true
+    // same as value in old config
     
     /* THIS ELEMENT IS NOT SPECIFIED IN THE SCHEMA.
      */
@@ -10673,6 +10788,7 @@
      * unit: mm
      */
     supportModelSpacing: 0.4
+    // value in old config: 1.299999952316284
     
     /* supportMorphAngle (NEW IN SCHEMA)
      * name: Support Morph Angle
@@ -10697,6 +10813,7 @@
      * unit: mm
      */
     supportRoofModelSpacing: 0.4
+    // value in old config: 0.4000000059604645
     
     /* supportRoofSolidLayerCount
      * type: unsigned_integer
@@ -11272,6 +11389,7 @@
      * unit: mm/s
      */
     travelSpeedXY: 150
+    // same as value in old config
     
     /* travelSpeedZ
      * name: Z-axis Travel Speed
@@ -11283,6 +11401,7 @@
      * unit: mm/s
      */
     travelSpeedZ: 23
+    // same as value in old config
     
     /* useRelativeExtruderPositions (NEW IN SCHEMA)
      * name: Use Relative Extruder Positions
@@ -11295,6 +11414,7 @@
     /* THIS ELEMENT IS NOT SPECIFIED IN THE SCHEMA.
      */
     version: 5.29.1
+    // value in old config: 3.9.4
     
     /* verticalAggregationCleanupDistance (NEW IN SCHEMA)
      * default: 0.0
@@ -11336,6 +11456,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 5.0
     
     /* anchorExtrusionSpeed (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11347,6 +11468,7 @@
      * unit: mm/s
      * widget: spinbox
      */
+    // value in old config: 2.0
     
     /* anchorWidth (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11358,6 +11480,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 2.0
     
     /* backlashZ (DELETED FROM SCHEMA)
      * name: Backlash Distance for the Z Axis
@@ -11379,6 +11502,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 1.0
     
     /* centerX (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11408,6 +11532,7 @@
      * type: string
      * widget: lineedit
      */
+    // value in old config: ""
     
     /* commentOpen (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11415,6 +11540,7 @@
      * type: string
      * widget: lineedit
      */
+    // value in old config: ;
     
     /* computeVolumeLike2_1_0 (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11423,6 +11549,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: false
     
     /* defaultRaftMaterial (DELETED FROM SCHEMA)
      * name: Raft Material Extruder
@@ -11438,12 +11565,14 @@
      * type: unsigned_integer
      * widget: spinbox
      */
+    // value in old config: 0
     
     /* description (DELETED FROM SCHEMA)
      * default: ""
      * description: This setting is provided to allow users to save details for each profile they create
      * type: string
      */
+    // value in old config: ""
     
     /* doAdvancedPathPlanning (DELETED FROM SCHEMA)
      * name: Use Advanced Path Planning
@@ -11463,6 +11592,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doDynamicSpeed (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11470,6 +11600,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: false
     
     /* doDynamicSpeedGradually (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11478,6 +11609,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doDynamicSpeedInteriorShells (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11486,6 +11618,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: false
     
     /* doDynamicSpeedOutermostShell (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11494,6 +11627,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doInfills (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11502,6 +11636,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doInsets (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11510,6 +11645,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doOutlines (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11519,6 +11655,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doPrintLayerMessages (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11527,6 +11664,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doPrintProgress (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11534,6 +11672,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* doPutModelOnPlatform (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11613,6 +11752,7 @@
      * unit: °C
      * widget: spinbox
      */
+    // value in old config: 215
     
     /* extruderTemp1 (DELETED FROM SCHEMA)
      * name: Extruder Temperature Left
@@ -11648,6 +11788,63 @@
      * type: ExtrusionMap
      * widget: ""
      */
+    // value in old config: {
+    //   bridges:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 40.0
+    //   }
+    //   firstLayer:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 5.0
+    //   }
+    //   firstLayerRaft:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 30.0
+    //   }
+    //   floorSurfaceFills:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 90.0
+    //   }
+    //   infill:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 90.0
+    //   }
+    //   insets:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 90.0
+    //   }
+    //   outlines:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 20.0
+    //   }
+    //   raft:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 90.0
+    //   }
+    //   raftBase:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 10.0
+    //   }
+    //   roofSurfaceFills:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 90.0
+    //   }
+    //   sparseRoofSurfaceFills:
+    //   {
+    //     fanSpeed: 0.5
+    //     feedrate: 90.0
+    //   }
+    // }
     
     /* flickBackTrace (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11708,6 +11905,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.800000011920929
     
     /* gridSpacingMultiplier (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11718,6 +11916,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 0.99
     
     /* infillDensity (DELETED FROM SCHEMA)
      * name: Infill Density
@@ -11732,6 +11931,7 @@
      * unit: %
      * widget: spinbox
      */
+    // value in old config: 0.300000011920929
     
     /* infillOrientationInterval (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11743,6 +11943,7 @@
      * type: integer
      * widget: spinbox
      */
+    // value in old config: 90
     
     /* infillOrientationOffset (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11754,6 +11955,7 @@
      * type: integer
      * widget: spinbox
      */
+    // value in old config: 0
     
     /* infillOrientationRange (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11765,6 +11967,7 @@
      * type: integer
      * widget: spinbox
      */
+    // value in old config: 90
     
     /* infillShellSpacingMultiplier (DELETED FROM SCHEMA)
      * description: Sets how far the infill overlaps the innermost shell. A lower setting will result in more overlap.
@@ -11774,6 +11977,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 0.55
     
     /* insetDistanceMultiplier (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11784,6 +11988,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 1.0
     
     /* jsonProgress (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11802,6 +12007,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: true
     
     /* maxSparseFillThickness (DELETED FROM SCHEMA)
      * name: Infill Layer Height
@@ -11816,6 +12022,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.4000000059604645
     
     /* metadataOutput (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11832,6 +12039,7 @@
      * type: Scalar
      * unit: mm
      */
+    // value in old config: 0.01
     
     /* numberOfShells (DELETED FROM SCHEMA)
      * name: Number of Shells
@@ -11845,6 +12053,7 @@
      * type: unsigned_integer
      * widget: spinbox
      */
+    // value in old config: 2
     
     /* outputFilepath (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11869,6 +12078,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 4.0
     
     /* purgeWallBasePatternLength (DELETED FROM SCHEMA)
      * name: Base Pattern Length
@@ -11884,6 +12094,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 10.0
     
     /* purgeWallBasePatternWidth (DELETED FROM SCHEMA)
      * name: Base Pattern Width
@@ -11899,6 +12110,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 8.0
     
     /* purgeWallModelOffset (DELETED FROM SCHEMA)
      * name: Wall to Model Spacing
@@ -11914,6 +12126,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 2.0
     
     /* purgeWallPatternWidth (DELETED FROM SCHEMA)
      * name: Wall Pattern Width
@@ -11929,6 +12142,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 2.0
     
     /* purgeWallSpacing (DELETED FROM SCHEMA)
      * name: Wall to Wall Spacing
@@ -11944,6 +12158,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 1.0
     
     /* purgeWallWidth (DELETED FROM SCHEMA)
      * name: Wall Width
@@ -11959,6 +12174,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.5
     
     /* purgeWallXLength (DELETED FROM SCHEMA)
      * name: Front Wall Length
@@ -11974,6 +12190,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 30.0
     
     /* raftAligned (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -11984,6 +12201,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: true
     
     /* raftBaseAngle (DELETED FROM SCHEMA)
      * name: Base Layer Angle
@@ -11999,6 +12217,7 @@
      * unit: degree
      * widget: spinbox
      */
+    // value in old config: 0.0
     
     /* raftBaseDensity (DELETED FROM SCHEMA)
      * name: Base Layer Density
@@ -12013,6 +12232,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 0.699999988079071
     
     /* raftBaseLayers (DELETED FROM SCHEMA)
      * name: Number of Base Layers
@@ -12027,6 +12247,7 @@
      * type: unsigned_integer
      * widget: spinbox
      */
+    // value in old config: 1
     
     /* raftBaseRunGapRatio (DELETED FROM SCHEMA)
      * name: Base Pattern Spacing
@@ -12042,6 +12263,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.800000011920929
     
     /* raftBaseRunLength (DELETED FROM SCHEMA)
      * name: Base Pattern Length
@@ -12057,6 +12279,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 15.0
     
     /* raftBaseShells (DELETED FROM SCHEMA)
      * name: Number of Base Layer Shells
@@ -12087,6 +12310,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.300000011920929
     
     /* raftBaseWidth (DELETED FROM SCHEMA)
      * name: Base Extrusion Width
@@ -12102,6 +12326,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 2.5
     
     /* raftInterfaceAngle (DELETED FROM SCHEMA)
      * name: Interface Layer Angle
@@ -12117,6 +12342,7 @@
      * unit: degree
      * widget: spinbox
      */
+    // value in old config: 45.0
     
     /* raftInterfaceDensity (DELETED FROM SCHEMA)
      * name: Interface Layer Density
@@ -12131,6 +12357,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 0.300000011920929
     
     /* raftInterfaceLayers (DELETED FROM SCHEMA)
      * name: Number of Interface Layers
@@ -12145,6 +12372,7 @@
      * type: unsigned_integer
      * widget: spinbox
      */
+    // value in old config: 2
     
     /* raftInterfaceThickness (DELETED FROM SCHEMA)
      * name: Interface Layer Height
@@ -12160,6 +12388,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.2700000107288361
     
     /* raftInterfaceWidth (DELETED FROM SCHEMA)
      * name: Interface Extrusion Width
@@ -12175,6 +12404,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.4000000059604645
     
     /* raftOutset (DELETED FROM SCHEMA)
      * name: Raft Margin
@@ -12189,6 +12419,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 15.0
     
     /* raftSubSurfaceInterfaceOffset (DELETED FROM SCHEMA)
      * debug_value: 0.0
@@ -12225,6 +12456,7 @@
      * unit: degree
      * widget: spinbox
      */
+    // value in old config: 0.0
     
     /* raftSurfaceLayers (DELETED FROM SCHEMA)
      * name: Number of Surface Layers
@@ -12239,6 +12471,7 @@
      * type: unsigned_integer
      * widget: spinbox
      */
+    // value in old config: 2
     
     /* raftSurfaceShellSpacingMultiplier (DELETED FROM SCHEMA)
      * name: Surface Fill to Shell Overlap
@@ -12251,6 +12484,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 0.7
     
     /* raftSurfaceShells (DELETED FROM SCHEMA)
      * name: Number of Surface Layer Shells
@@ -12266,6 +12500,7 @@
      * type: unsigned_integer
      * widget: spinbox
      */
+    // value in old config: 2
     
     /* raftSurfaceThickness (DELETED FROM SCHEMA)
      * name: Surface Layer Height
@@ -12281,6 +12516,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.2700000107288361
     
     /* roofLayerCount (DELETED FROM SCHEMA)
      * name: Roof Layer Count
@@ -12305,6 +12541,7 @@
      * unit: mm
      * widget: spinbox
      */
+    // value in old config: 0.800000011920929
     
     /* solidFillOrientationInterval (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -12316,6 +12553,7 @@
      * type: integer
      * widget: spinbox
      */
+    // value in old config: 90
     
     /* solidFillOrientationOffset (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -12327,6 +12565,7 @@
      * type: integer
      * widget: spinbox
      */
+    // value in old config: 0
     
     /* solidFillOrientationRange (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -12338,6 +12577,7 @@
      * type: integer
      * widget: spinbox
      */
+    // value in old config: 90
     
     /* sparseInfillPattern (DELETED FROM SCHEMA)
      * name: Infill Pattern
@@ -12358,6 +12598,7 @@
      * ]
      * widget: combobox
      */
+    // value in old config: diamond (fast)
     
     /* spurOverlap (DELETED FROM SCHEMA)
      * name: TODO - WidgetName
@@ -12368,6 +12609,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 0.001
     
     /* supportAligned (DELETED FROM SCHEMA)
      * name: Align Support
@@ -12382,6 +12624,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: false
     
     /* supportBreakawayModelFloorSpacing (DELETED FROM SCHEMA)
      * default: 0
@@ -12418,6 +12661,7 @@
      * type: Scalar
      * widget: spinbox
      */
+    // value in old config: 0.2000000029802322
     
     /* supportExcessive (DELETED FROM SCHEMA)
      * name: Extra Support
@@ -12432,6 +12676,7 @@
      * type: boolean
      * widget: checkbox
      */
+    // value in old config: false
     
     /* thickLayerThreshold (DELETED FROM SCHEMA)
      * default: 0.0
@@ -12439,10 +12684,12 @@
      * type: Scalar
      * unit: mm
      */
+    // value in old config: 0
     
     /* thickLayerVolumeMultiplier (DELETED FROM SCHEMA)
      * default: 1.0
      * description: Multiply the volume for layers thicker than thickLayerThreshold by this value
      * type: Scalar
      */
+    // value in old config: 1
 }

@@ -194,12 +194,13 @@ def dumpsAnnotatedHjsonValue(value, path, schema):
         returnValue += braces[0] + "\n"
         for key in sorted(list(keysInValue.union(keysInSchema))):
             annotation = None
-            
             if key in keysInOldSchema and key not in keysInSchema:
                 annotation = addParentheticalRemarkAtEndOfFirstLine(
                     getAnnotationForEntry(path + [key], oldSchema),
                     "DELETED FROM SCHEMA, BUT YOU HAVE STILL SPECIFIED A VALUE"
                 )
+
+
 
             else:
                 annotation = getAnnotationForEntry(path + [key], schema)
@@ -208,10 +209,17 @@ def dumpsAnnotatedHjsonValue(value, path, schema):
                         annotation,
                         "NEW IN SCHEMA"
                     )
+            
+            oldSubValue = (
+                oldMiraclegrueConfig.get(key)
+                if len(path) == 0 else None
+            )
 
             if key in keysInValue:
-                entry = (key + ": "  if subentryFormat == "dictEntry" else "") + dumpsAnnotatedHjsonValue(value[key], path + [key], schema)
+                subValue = value[key]
+                entry = (key + ": "  if subentryFormat == "dictEntry" else "") + dumpsAnnotatedHjsonValue(subValue, path + [key], schema)
             else:
+                subValue = None
                 entry = "// VALUE NOT SPECIFIED"
             
             returnValue += indentAllLines(
@@ -220,17 +228,36 @@ def dumpsAnnotatedHjsonValue(value, path, schema):
                     if annotation else ""
                 ) 
                 + entry
+                + (
+                    prefixAllLines(
+                        (
+                            "same as value in old config"
+                            if (subValue!=None and (hjson.loads(hjson.dumps(subValue)) == hjson.loads(hjson.dumps(oldSubValue))))
+                            else "value in old config: " + hjson.dumps(oldSubValue)
+                        ), 
+                        "// "
+                    )
+                    if oldSubValue != None else ""
+                )
             ) + "\n"
         for key in sorted(list(keysInOldSchema.difference(keysInSchema))):
             annotation = addParentheticalRemarkAtEndOfFirstLine(
                 getAnnotationForEntry(path + [key], oldSchema),
                 "DELETED FROM SCHEMA"
             )
+            oldSubValue = (
+                oldMiraclegrueConfig.get(key)
+                if len(path) == 0 else None
+            )
             returnValue += indentAllLines(
                 (
                     "\n" + makeBlockComment(annotation) + "\n" 
                     if annotation else ""
                 ) 
+                + (
+                    prefixAllLines("value in old config: " + hjson.dumps(oldSubValue), "// ")
+                    if oldSubValue != None else ""
+                )
             ) + "\n"
         returnValue += braces[1] + "\n"
     else:
