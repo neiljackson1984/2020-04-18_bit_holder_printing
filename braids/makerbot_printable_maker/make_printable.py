@@ -11,10 +11,10 @@ import hjson
 import tempfile
 
 
-
 parser = argparse.ArgumentParser(description="Generate a .makerbot toolpath file from a .thing file and a mircale_grue configuration file.")
 parser.add_argument("--input_file", action='store', nargs=1, required=True, help="the .thing file to be sliced.")
-parser.add_argument("--output_file", action='store', nargs=1, required=True, help="the .makerbot file to be created.")
+parser.add_argument("--output_makerbot_file", action='store', nargs=1, required=True, help="the .makerbot file to be created.")
+parser.add_argument("--output_gcode_file", action='store', nargs=1, required=False, help="the .gcode file to be created.")
 parser.add_argument("--makerware_path", action='store', nargs=1, required=True, help="the path of the MakerWare folder, which comes with Makerbot Print.")
 parser.add_argument("--miraclegrue_config_file", action='store', nargs=1, required=True, help="The miraclegrue config file.  This may be either a plain old .json file, or an hjson file, which is json with more relaxed syntax, and allows comments.")
 parser.add_argument("--old_miraclegrue_config_file", action='store', nargs=1, required=False, help="The miraclegrue config file.  This may be either a plain old .json file, or an hjson file, which is json with more relaxed syntax, and allows comments.")
@@ -29,7 +29,8 @@ args, unknownArgs = parser.parse_known_args()
 
 #resolve all of the paths passed as arguments to fully qualified paths:
 input_file_path = pathlib.Path(args.input_file[0]).resolve()
-output_file_path = pathlib.Path(args.output_file[0]).resolve()
+output_makerbot_file_path = pathlib.Path(args.output_makerbot_file[0]).resolve()
+output_gcode_file_path = (pathlib.Path(args.output_gcode_file[0]).resolve() if args.output_gcode_file else None)
 makerware_path = pathlib.Path(args.makerware_path[0]).resolve()
 miraclegrue_config_file_path = pathlib.Path(args.miraclegrue_config_file[0]).resolve()
 
@@ -269,7 +270,7 @@ if args.output_annotated_miraclegrue_config_file:
     # generate an annotated hjson version of the config file, by
     # adding the descriptions in the schema as comments.
     # schema = json.load(open(pathlib.Path(args.miraclegrue_config_schema_file[0]).resolve() ,'r'))
-    completedProcess = subprocess.run(
+    process = subprocess.run(
         args=[
             str(miracle_grue_executable_path),
             "--config-schema"   
@@ -277,7 +278,7 @@ if args.output_annotated_miraclegrue_config_file:
         capture_output = True,
         text=True
     )
-    schema = json.loads(completedProcess.stdout)
+    schema = json.loads(process.stdout)
     oldSchema = json.load(open(pathlib.Path(args.old_miraclegrue_config_schema_file[0]).resolve(),'r'))
     oldMiraclegrueConfig = json.load(open(pathlib.Path(args.old_miraclegrue_config_file[0]).resolve(),'r'))
     annotatedConfigFile = open(pathlib.Path(args.output_annotated_miraclegrue_config_file[0]).resolve() ,'w')
@@ -302,44 +303,53 @@ temporary_miraclegrue_config_file_path = pathlib.Path(temporary_miraclegrue_conf
 #the path of the makerware sliceconfig python script:
 makerware_sliceconfig_path = makerware_path.joinpath("sliceconfig").resolve()
 
+outputToolpathFilePaths = [output_makerbot_file_path]
+if output_gcode_file_path: outputToolpathFilePaths.append(output_gcode_file_path)
 
+for outputToolpathFilePath in outputToolpathFilePaths:
+    subprocessArgs = [
+        str(makerware_python_executable_path),
+        str(makerware_sliceconfig_path),
+        "--status-updates",
+        "--input=" + str(input_file_path) +  "",
+        "--output=" + str(outputToolpathFilePath) +  "",
+        "--machine_id=" + miraclegrueConfig['_bot'] + "",
+        "--extruder_ids=" + ",".join(miraclegrueConfig['_extruders']) + "",
+        "--material_ids=" + ",".join(miraclegrueConfig['_materials']) + "",
+        "--profile=" + str(temporary_miraclegrue_config_file_path) + "" ,
+        "slice"
+    ]
 
-subprocessArgs = [
-    str(makerware_python_executable_path),
-    str(makerware_sliceconfig_path),
-    "--status-updates",
-    "--input=" + str(input_file_path) +  "",
-    "--output=" + str(output_file_path) +  "",
-    "--machine_id=" + miraclegrueConfig['_bot'] + "",
-    "--extruder_ids=" + ",".join(miraclegrueConfig['_extruders']) + "",
-    "--material_ids=" + ",".join(miraclegrueConfig['_materials']) + "",
-    "--profile=" + str(temporary_miraclegrue_config_file_path) + "" ,
-    "slice"
-]
+    process = subprocess.Popen(
+        cwd=makerware_python_working_directory_path,
+        args=subprocessArgs,
+        # capture_output = True,
+        text=True,
+        stdout=subprocess.PIPE
+    )
+    for line in iter(process.stdout.readline, 'b'):
+        if line:
+            sys.stdout.write(line)
+        else:
+            break
 
-completedProcess = subprocess.run(
-    cwd=makerware_python_working_directory_path,
-    args=subprocessArgs,
-    capture_output = True,
-    text=True
-)
-print("\n")
-print("completedProcess.args: " + str(completedProcess.args))
-print("\n")
-print("completedProcess.stdout: " + str(completedProcess.stdout))
-print("\n")
-print("completedProcess.stderr: " + str(completedProcess.stderr))
-print("\n")
-print("completedProcess.returncode: " + str(completedProcess.returncode))
-print("\n")
-print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
-print("\n")
-print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
-print("\n")
-print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
-print("\n")
+    print("\n")
+    print("process.args: " + str(process.args))
+    print("\n")
+    print("process.stdout: " + str(process.stdout))
+    print("\n")
+    print("process.stderr: " + str(process.stderr))
+    print("\n")
+    print("process.returncode: " + str(process.returncode))
+    print("\n")
+    print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
+    print("\n")
+    print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
+    print("\n")
+    print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
+    print("\n")
 
-# print("completedProcess.stderr: " + json.dumps(json.loads(str(completedProcess.stderr))) )
+# print("process.stderr: " + json.dumps(json.loads(str(process.stderr))) )
 
 
 
