@@ -9,6 +9,7 @@ import math
 import subprocess
 import hjson
 import tempfile
+import datetime
 
 
 parser = argparse.ArgumentParser(description="Generate a .makerbot toolpath file from a .thing file and a mircale_grue configuration file.")
@@ -274,27 +275,41 @@ if output_makerbot_file_path:
         text=True,
         stdout=subprocess.PIPE
     )
+
+
+    # for line in iter(process.stdout.readline, 'b'):
+    #     if line:
+    #         # sys.stdout.write(line)
+    #         print(line)
+    #     else:
+    #         break
+   
+   
+    # while True:
+    #     output = process.stdout.readline()
+    #     if output == '' and process.poll() is not None:
+    #         break
+    #     if output:
+    #         now = datetime.datetime.now()
+    #         print(now.strftime("%Y-%m-%d %H:%M:%S") + " " + str(now.microsecond) + " " + ": " + output.strip())
+    #         sys.stdout.flush()
+
     for line in iter(process.stdout.readline, 'b'):
         if line:
+            #TO DO: attempt to interpret line as a json expression.
             sys.stdout.write(line)
+            sys.stdout.flush()
+            # curiously, on some shells (for instance, the shell within notepad++ and git bash), the output from this script was being accumulated in a  buffer and only dumped to stdout 
+            # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
         else:
             break
 
     print("\n")
     print("process.args: " + str(process.args))
-    print("\n")
     print("process.stdout: " + str(process.stdout))
-    print("\n")
     print("process.stderr: " + str(process.stderr))
-    print("\n")
     print("process.returncode: " + str(process.returncode))
-    print("\n")
     print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
-    print("\n")
-    print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
-    print("\n")
-    print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
-    print("\n")
 
 # print("process.stderr: " + json.dumps(json.loads(str(process.stderr))) )
 
