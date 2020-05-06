@@ -9,7 +9,8 @@ uploadTargets=$(foreach source,${sources},upload_$(basename $(notdir ${source}))
 makerwarePath=C:\Program Files\MakerBot\MakerBotPrint\resources\app.asar.unpacked\node_modules\MB-support-plugin\mb_ir\MakerWare
 uploadPrefix=$(shell date +%Y%m%d_%H%M%S)--
 destinationDirectoryOnTheMakerbot=/home/usb_storage/
-miraclegrueConfigFile=miracle_config.hjson
+# miraclegrueConfigFile=miracle_config.hjson
+miraclegrueConfigFile=default_miracle_config.json
 
 # default:
 	# @echo pathOfThisMakefile: $(pathOfThisMakefile)
@@ -31,18 +32,13 @@ ${buildFolder}/%.makerbot: ${pathOfThisMakefile}/%.thing  | ${buildFolder}
 	pipenv run python \
 		"$(call getFullyQualifiedWindowsStylePath,${pathOfMakePrintableScript})" \
 		--makerware_path="${makerwarePath}" \
-		--input_file="$(call getFullyQualifiedWindowsStylePath,$<)" \
-		--output_makerbot_file="$(call getFullyQualifiedWindowsStylePath,$@)" \
-		--output_gcode_file="$(call getFullyQualifiedWindowsStylePath, $(dir $@)$(basename $(notdir $@)).gcode)" \
-		--miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,${miraclegrueConfigFile})" \
-		--miraclegrue_config_schema_file="$(call getFullyQualifiedWindowsStylePath,research/schema.json)" \
+		--input_model_file="$(call getFullyQualifiedWindowsStylePath,$<)" \
+		--input_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,${miraclegrueConfigFile})" \
 		--output_annotated_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,${buildFolder}/miracle_config_annotated.hjson)" \
-		--old_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,original.json)" \
-		--old_miraclegrue_config_schema_file="$(call getFullyQualifiedWindowsStylePath,research/miracle_grue_3.9.4_config_schema.json)" 	
-	
-
+		--output_makerbot_file="$(call getFullyQualifiedWindowsStylePath,$@)" \
+		--output_gcode_file="$(call getFullyQualifiedWindowsStylePath, $(dir $@)$(basename $(notdir $@)).gcode)"
 upload_%: ${buildFolder}/%.makerbot
-	pscp -v "$(call getFullyQualifiedWindowsStylePath,$<)" "root@makerbot.ad.autoscaninc.com:${destinationDirectoryOnTheMakerbot}${uploadPrefix}$(notdir $<)"
+	pscp "$(call getFullyQualifiedWindowsStylePath,$<)" "root@makerbot.ad.autoscaninc.com:${destinationDirectoryOnTheMakerbot}${uploadPrefix}$(notdir $<)"
 
 
 .SILENT:		
