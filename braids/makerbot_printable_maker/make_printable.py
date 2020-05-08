@@ -27,6 +27,9 @@ parser.add_argument("--input_miraclegrue_config_file", action='store', nargs=1, 
 parser.add_argument("--output_annotated_miraclegrue_config_file", action='store', nargs=1, required=False, help="An hjson file to be created by inserting the descriptions from the schema, as comments, interspersed within the miracle_grue_config json entries.")
 parser.add_argument("--output_makerbot_file", action='store', nargs=1, required=False, help="the .makerbot file to be created.")
 parser.add_argument("--output_gcode_file", action='store', nargs=1, required=False, help="the .gcode file to be created.")
+parser.add_argument("--output_json_toolpath_file", action='store', nargs=1, required=False, help="the .jsontoolpath file to be created.")
+parser.add_argument("--output_metadata_file", action='store', nargs=1, required=False, help="the .json metadata file to be created.")
+
 
 
 args, unknownArgs = parser.parse_known_args()
@@ -35,6 +38,10 @@ args, unknownArgs = parser.parse_known_args()
 input_model_file_path = pathlib.Path(args.input_model_file[0]).resolve()
 output_makerbot_file_path = (pathlib.Path(args.output_makerbot_file[0]).resolve() if args.output_makerbot_file else None)
 output_gcode_file_path = (pathlib.Path(args.output_gcode_file[0]).resolve() if args.output_gcode_file else None)
+output_json_toolpath_file_path = (pathlib.Path(args.output_json_toolpath_file[0]).resolve() if args.output_json_toolpath_file else None)
+output_metadata_file_path = (pathlib.Path(args.output_metadata_file[0]).resolve() if args.output_metadata_file else None)
+
+
 makerware_path = pathlib.Path(args.makerware_path[0]).resolve()
 input_miraclegrue_config_file_path = pathlib.Path(args.input_miraclegrue_config_file[0]).resolve()
 
@@ -250,9 +257,7 @@ with tempfile.NamedTemporaryFile(mode='w', delete=False) as temporary_miraclegru
     temporary_miraclegrue_config_file_path = pathlib.Path(temporary_miraclegrue_config_file.name).resolve()
 
 outputToolpathFilePaths = [output_makerbot_file_path]
-if output_gcode_file_path: 
-    #TO DO: fill in the gcode generation process here.
-    pass
+
 
 if output_makerbot_file_path:
     subprocessArgs = [
@@ -299,17 +304,57 @@ if output_makerbot_file_path:
             #TO DO: attempt to interpret line as a json expression.
             sys.stdout.write(line)
             sys.stdout.flush()
-            # curiously, on some shells (for instance, the shell within notepad++ and git bash), the output from this script was being accumulated in a  buffer and only dumped to stdout 
+            # curiously, on some shells (for instance, the shell within notepad++ and git bash), 
+            # the output from this script was being accumulated in a  buffer and only dumped to stdout 
             # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
         else:
             break
 
     print("\n")
-    print("process.args: " + str(process.args))
+    print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
     print("process.stdout: " + str(process.stdout))
     print("process.stderr: " + str(process.stderr))
     print("process.returncode: " + str(process.returncode))
     print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
+
+if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_file_path: 
+    #TO DO: fill in the gcode generation process here.
+    subprocessArgs = [
+        str(miracle_grue_executable_path),
+        "--json-progress", # Display progress messages in JSON format
+        "--config=" + str(temporary_miraclegrue_config_file_path)
+    ]
+    if output_gcode_file_path: subprocessArgs.append("--gcode-toolpath-output=" + str(output_gcode_file_path))
+    if output_json_toolpath_file_path: subprocessArgs.append("--json-toolpath-output=" + str(output_json_toolpath_file_path))
+    if output_metadata_file_path: subprocessArgs.append("--metadata-output=" + str(output_metadata_file_path))
+
+    subprocessArgs.append(str(input_model_file_path))
+     
+
+    process = subprocess.Popen(
+        cwd=makerware_python_working_directory_path,
+        args=subprocessArgs,
+        # capture_output = True,
+        text=True,
+        stdout=subprocess.PIPE
+    ) 
+
+    for line in iter(process.stdout.readline, 'b'):
+        if line:
+            #TO DO: attempt to interpret line as a json expression.
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            # curiously, on some shells (for instance, the shell within notepad++ and git bash), 
+            # the output from this script was being accumulated in a  buffer and only dumped to stdout 
+            # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
+        else:
+            break
+
+    print("\n")
+    print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
+    print("process.stdout: " + str(process.stdout))
+    print("process.stderr: " + str(process.stderr))
+    print("process.returncode: " + str(process.returncode))
 
 # print("process.stderr: " + json.dumps(json.loads(str(process.stderr))) )
 

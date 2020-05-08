@@ -9,8 +9,8 @@ uploadTargets:=$(foreach source,${sources},upload_$(basename $(notdir ${source})
 makerwarePath:=C:\Program Files\MakerBot\MakerBotPrint\resources\app.asar.unpacked\node_modules\MB-support-plugin\mb_ir\MakerWare
 uploadPrefix:=$(shell date +%Y%m%d_%H%M%S)--
 destinationDirectoryOnTheMakerbot:=/home/usb_storage/
-# miraclegrueConfigFile=miracle_config.hjson
-miraclegrueConfigFile:=default_miracle_config.json
+miraclegrueConfigFile=miracle_config.hjson
+# miraclegrueConfigFile:=default_miracle_config.json
 venv:=$(shell cd "$(abspath $(dir ${pathOfMakePrintableScript}))" > /dev/null 2>&1; pipenv --venv || echo initializeVenv)
 # the variable 'venv' will evaluate to the path of the venv, if it exists, or else will evaluate to 'initializeVenv', which is a target that we have created below.
 # in either case, we want to use venv as a prerequisite for default.
@@ -25,16 +25,32 @@ venv:=$(shell cd "$(abspath $(dir ${pathOfMakePrintableScript}))" > /dev/null 2>
 	# @echo sources: $(sources)
 	# @echo targets: $(targets)
 
-default: $(targets) $(uploadTargets)
+# default: $(targets) $(uploadTargets)
+
+default: $(uploadTargets)
 	
 ${buildFolder}:
 	mkdir --parents "${buildFolder}"
 #buildFolder, when included as a prerequisite for rules, should be declared as an order-only prerequisites (by placing it to the right of a "|" character in the 
 # list of prerequisites.  See https://www.gnu.org/software/make/manual/html_node/Prerequisite-Types.html 
 
+# ${buildFolder}/%.makerbot: ${pathOfThisMakefile}/%.thing ${pathOfMakePrintableScript} | ${buildFolder} ${venv} 
+	# @echo "====== BUILDING $@ from $< ======= "
+	# cd "$(abspath $(dir ${pathOfMakePrintableScript}))" > /dev/null 2>&1; \
+	# pipenv run python \
+		# "$(call getFullyQualifiedWindowsStylePath,${pathOfMakePrintableScript})" \
+		# --makerware_path="${makerwarePath}" \
+		# --input_model_file="$(call getFullyQualifiedWindowsStylePath,$<)" \
+		# --input_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,${miraclegrueConfigFile})" \
+		# --output_annotated_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,${buildFolder}/miracle_config_annotated.hjson)" \
+		# --output_makerbot_file="$(call getFullyQualifiedWindowsStylePath,$@)" \
+		# --output_gcode_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).gcode)" \
+		# --output_json_toolpath_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).jsontoolpath)" \
+		# --output_metadata_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).meta.json)"
+
 ${buildFolder}/%.makerbot: ${pathOfThisMakefile}/%.thing ${pathOfMakePrintableScript} | ${buildFolder} ${venv} 
 	@echo "====== BUILDING $@ from $< ======= "
-	cd "$(abspath $(dir ${pathOfMakePrintableScript}))"; \
+	cd "$(abspath $(dir ${pathOfMakePrintableScript}))" > /dev/null 2>&1; \
 	pipenv run python \
 		"$(call getFullyQualifiedWindowsStylePath,${pathOfMakePrintableScript})" \
 		--makerware_path="${makerwarePath}" \
@@ -42,7 +58,10 @@ ${buildFolder}/%.makerbot: ${pathOfThisMakefile}/%.thing ${pathOfMakePrintableSc
 		--input_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,${miraclegrueConfigFile})" \
 		--output_annotated_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,${buildFolder}/miracle_config_annotated.hjson)" \
 		--output_makerbot_file="$(call getFullyQualifiedWindowsStylePath,$@)" \
-		--output_gcode_file="$(call getFullyQualifiedWindowsStylePath, $(dir $@)$(basename $(notdir $@)).gcode)"
+		--output_gcode_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).gcode)"
+
+
+
 upload_%: ${buildFolder}/%.makerbot
 	pscp "$(call getFullyQualifiedWindowsStylePath,$<)" "root@makerbot.ad.autoscaninc.com:${destinationDirectoryOnTheMakerbot}${uploadPrefix}$(notdir $<)"
 
