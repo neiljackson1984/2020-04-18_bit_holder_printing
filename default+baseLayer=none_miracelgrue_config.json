@@ -1,8 +1,12 @@
 {
-    "version": "5.29.1",
+    "version": "5.31.0",
     "_bot": "replicator_5",
-    "_extruders": ["mk13"],
-    "_materials": ["pla"],    
+    "_extruders": [
+        "mk13"
+    ],
+    "_materials": [
+        "pla"
+    ],
     "adjacentFillLeakyConnections": true,
     "adjacentFillLeakyDistanceRatio": 1.4,
     "areaToTaperSupportsIn": 9223372036854775807,
@@ -11,6 +15,7 @@
     "backlashFeedback": 0.9,
     "backlashX": 0.0,
     "backlashY": 0.09,
+    "baseLayer": "none",
     "bedZOffset": 0.0,
     "bridgeAnchorMinimumLength": 0.8,
     "bridgeAnchorWidth": 0.8,
@@ -39,7 +44,7 @@
     "doPaddedBase": false,
     "doPurgeEarlyEnd": true,
     "doPurgeWall": false,
-    "doRaft": true,
+    "doRaft": false,
     "doRateLimit": false,
     "doSplitLongMoves": false,
     "doSupport": false,
@@ -49,8 +54,7 @@
     "exponentialDecelerationMinSpeed": 0.0,
     "exponentialDecelerationRatio": 0.375,
     "exponentialDecelerationSegmentCount": 10,
-    "extruderProfiles": [
-        {
+    "extruderProfiles": [{
             "defaultTemperature": 215,
             "extrusionProfiles": {
                 "base_layer_surface": {
@@ -389,8 +393,8 @@
         }
     },
     "raftInterfaceShells": 0,
-    "raftModelShellsSpacing": 0.19,
-    "raftModelSpacing": 0.26,
+    "raftModelShellsSpacing": 0.0,
+    "raftModelSpacing": 0.0,
     "raftProfiles": {
         "base": {
             "ZOffset": 0.0,
@@ -498,15 +502,15 @@
     "supportExtraDistance": 0.5,
     "supportFillProfiles": {
         "base_layer_surface": {
-            "density": 1.0,
-            "extrusionProfile": "base_layer_surface",
+            "considerFillPathWidth": true,
+            "consistentOrder": false,
+            "density": 0.2,
+            "extrusionProfile": "support_sparse",
             "extrusionWidth": 0.4,
-            "linearFillGroupDensity": 1,
-            "linearFillGroupSize": 1,
-            "minPathLength": 0.0,
-            "orientationInterval": 1,
+            "minPathLength": 0.4,
+            "orientationInterval": 0,
             "orientationOffset": 0,
-            "orientationRange": 90,
+            "orientationRange": 360,
             "pattern": "linear"
         },
         "floor_surface": {

@@ -5,11 +5,54 @@ import json
 import pathlib
 import sys
 import math
+import copy
 # import numpy
 import subprocess
-import hjson
+import hjson #see https://hjson.github.io/hjson-py/
 import tempfile
 import datetime
+import progress
+import progress.bar
+import jsondiff
+import jsondiff_by_makerbot
+# import importlib.util
+import shutil
+
+
+class MyProgressBar(progress.bar.Bar):
+    suffix='%(percent)d%% - %(elapsed_td)s/%(estimatedTotalDuration_td)s'
+    @property
+    def estimatedTotalDuration(self):
+        try:
+            return int(math.ceil(1/self.progress * self.elapsed))
+        except ZeroDivisionError:
+            return 0
+    @property
+    def estimatedTotalDuration_td(self):
+        return datetime.timedelta(seconds=self.estimatedTotalDuration)
+    
+    def setProgress(self, newValue):
+        self.index = newValue * self.max
+
+    def setProgressAndUpdate(self, newValue):
+        self.setProgress(newValue)
+        self.update()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 parser = argparse.ArgumentParser(description="Generate a .makerbot toolpath file from a .thing file and a mircale_grue configuration file.")
@@ -24,11 +67,20 @@ parser.add_argument("--makerware_path", action='store', nargs=1, required=True,
 )
 parser.add_argument("--input_model_file", action='store', nargs=1, required=True, help="the .thing file to be sliced.")
 parser.add_argument("--input_miraclegrue_config_file", action='store', nargs=1, required=True, help="The miraclegrue config file.  This may be either a plain old .json file, or an hjson file, which is json with more relaxed syntax, and allows comments.")
+# parser.add_argument("--input_miraclegrue_config_overrides_file", action='store', nargs=1, required=False, help="This is a file of the same structure as the miracle_grue_config_file.  We will construct the configuration that we pass to miracle_grue " 
+#     + " and then applying any values that may be specified in input_miraclegrue_config_overrides_file.")
+parser.add_argument("--input_miraclegrue_config_transform_file", action='store', nargs=1, required=False, 
+    help="is expected to contain valid python code that defines a function "
+        + "named \"transformMiraclegrueConfig\", which is expected to take a single argument, a dict, which is the configuration "
+        + "that is to be transformed.  transformMiraclegrueConfig can modify the configuration as it sees fit."
+)
 parser.add_argument("--output_annotated_miraclegrue_config_file", action='store', nargs=1, required=False, help="An hjson file to be created by inserting the descriptions from the schema, as comments, interspersed within the miracle_grue_config json entries.")
+parser.add_argument("--output_miraclegrue_config_diff_file", action='store', nargs=1, required=False, help="a report showing the difference between the config after applying the transform compared with the input config file.")
 parser.add_argument("--output_makerbot_file", action='store', nargs=1, required=False, help="the .makerbot file to be created.")
 parser.add_argument("--output_gcode_file", action='store', nargs=1, required=False, help="the .gcode file to be created.")
 parser.add_argument("--output_json_toolpath_file", action='store', nargs=1, required=False, help="the .jsontoolpath file to be created.")
 parser.add_argument("--output_metadata_file", action='store', nargs=1, required=False, help="the .json metadata file to be created.")
+
 
 
 
@@ -40,6 +92,9 @@ output_makerbot_file_path = (pathlib.Path(args.output_makerbot_file[0]).resolve(
 output_gcode_file_path = (pathlib.Path(args.output_gcode_file[0]).resolve() if args.output_gcode_file else None)
 output_json_toolpath_file_path = (pathlib.Path(args.output_json_toolpath_file[0]).resolve() if args.output_json_toolpath_file else None)
 output_metadata_file_path = (pathlib.Path(args.output_metadata_file[0]).resolve() if args.output_metadata_file else None)
+# input_miraclegrue_config_overrides_file_path = (pathlib.Path(args.input_miraclegrue_config_overrides_file[0]).resolve() if args.input_miraclegrue_config_overrides_file else None)
+input_miraclegrue_config_transform_file_path = (pathlib.Path(args.input_miraclegrue_config_transform_file[0]).resolve() if args.input_miraclegrue_config_transform_file else None)
+output_miraclegrue_config_diff_file_path = (pathlib.Path(args.output_miraclegrue_config_diff_file[0]).resolve() if args.output_miraclegrue_config_diff_file else None)
 
 
 makerware_path = pathlib.Path(args.makerware_path[0]).resolve()
@@ -50,12 +105,71 @@ input_miraclegrue_config_file_path = pathlib.Path(args.input_miraclegrue_config_
 #the path of the python executable included with makerware:
 makerware_python_executable_path = makerware_path.joinpath("python3.4.exe").resolve()
 makerware_python_working_directory_path = makerware_path.joinpath("python34").resolve()
-miracle_grue_executable_path = makerware_path.joinpath("miracle_grue.exe").resolve()
+miraclegrue_executable_path = makerware_path.joinpath("miracle_grue.exe").resolve()
+
+# sliceLibraryEggPath = list(makerware_path.joinpath("python").glob("slice_library*.egg"))[0]
+
+# print("sliceLibraryEggPath.resolve(): " + str(sliceLibraryEggPath.resolve()))		# sliceLibraryEggPath.resolve()
+
+# # spec = importlib.util.spec_from_file_location('slice_library', sliceLibraryEggPath.resolve())
+# # module = importlib.util.module_from_spec(spec)
+# # sys.modules['slice_library'] = module
+# # spec.loader.exec_module(module)
+
+# sys.path.insert(0, str(sliceLibraryEggPath.resolve()))
+# # This is how sliceconfig finds its resource files
+# os.environ['MB_RESOURCE_PATH'] = str(makerware_path)
+# import slice_library.tinything_processor
+
+# print("dir(slice_library): " + str(dir(slice_library)))		# dir(slice_library)
+# print("dir(slice_library.tinything_processor): " + str(dir(slice_library.tinything_processor)))		# dir(slice_library.tinything_processor)
 
 #the path of the makerware sliceconfig python script:
 makerware_sliceconfig_path = makerware_path.joinpath("sliceconfig").resolve()
 
 miraclegrueConfig = hjson.load(open(input_miraclegrue_config_file_path ,'r'))
+
+if input_miraclegrue_config_transform_file_path:
+    #modify miraclegrueConfig by applying any overrides that may be specified in input_miraclegrue_config_overrides_file
+    #miraclegrueConfigOverrides = hjson.load(open(input_miraclegrue_config_overrides_file_path ,'r'))
+    # print("miraclegrueConfigOverrides: " + str(type(miraclegrueConfigOverrides)))
+
+    # record the initia; state of miracleGrueConfig, before we allow the transform to (possibly) modify it.
+    # We do this so that we can, if the user has requested a output_miraclegrue_config_diff_file, generate
+    # a report showing the differences between miraclegrueConfig before and after the transform operates on it.
+    initialMiraclegrueConfig = copy.deepcopy(miraclegrueConfig)
+
+    #input_miraclegrue_config_overrides_file is expected to contain valid python code that defines a function
+    # named "transformMiraclegrueConfig", which is expected to take a single argument, a dict, which is the configuration
+    # that is to be transformed.  transformMiraclegrueConfig can modify the configuration as it sees fit.
+    # Should we expect transformMiraclegrueConfig() to return a dict, that we will then take to be the new miraclegrueConfig,
+    # or, alternatively, should we expect to transformMiraclegrueConfig() to modify the dict that is passed to it?  -- I am still deciding.
+    # It seems like the return value approach would be the most flexible.
+
+    isolatedGlobals = dict()
+
+    exec(open(input_miraclegrue_config_transform_file_path, 'r').read(), isolatedGlobals)
+    #I think, although am not entirely certain, that passing the isolatedGlobals object prevents the code in input_miraclegrue_config_transform_file_path
+    # from being able to muck with, or even see, our globals here.  This mechanism does not prevent the execution of arbitrary code and so is certainly not suitable for a production application.
+    # We ought to figure out how to run transformMiraclegrueConfig in a sandbox.
+
+    # print("isolatedGlobals.keys(): " + str(isolatedGlobals.keys()))
+    # print("type(isolatedGlobals[\"transformMiraclegrueConfig\"]): " + str(type(isolatedGlobals["transformMiraclegrueConfig"])))		#     type(isolatedGlobals["transformMiraclegrueConfig"])
+
+    miraclegrueConfig = isolatedGlobals["transformMiraclegrueConfig"](miraclegrueConfig)
+    # print("miraclegrueConfig['foo']: " + str(miraclegrueConfig['foo']))		#     miracleGrueConfig['foo']
+
+
+
+    if output_miraclegrue_config_diff_file_path:
+        # diff = jsondiff.diff(initialMiraclegrueConfig, miraclegrueConfig)
+        # print("diff.keys(): " + str(diff.keys()))		#         diff.keys()
+        # open(output_miraclegrue_config_diff_file_path ,'w').write(str(diff))
+
+        diff = jsondiff_by_makerbot.JSONDiff(initialMiraclegrueConfig, miraclegrueConfig)
+        open(output_miraclegrue_config_diff_file_path ,'w').write(str(diff.pretty_str(trim_size=300)))
+  
+
 
 def tabbedWrite(file, content, tabLevel=0, tabString="    ", linePrefix=""):
     file.write(
@@ -97,6 +211,7 @@ def addParentheticalRemarkAtEndOfFirstLine(x, remark=None):
         [lines[0] + (" (" + str(remark) + ")" if remark else "")]
         + lines[1:]
     )
+
 
 
 # path is expected to be a list (of keys)
@@ -233,7 +348,7 @@ if args.output_annotated_miraclegrue_config_file:
     # schema = json.load(open(pathlib.Path(args.miraclegrue_config_schema_file[0]).resolve() ,'r'))
     process = subprocess.run(
         args=[
-            str(miracle_grue_executable_path),
+            str(miraclegrue_executable_path),
             "--config-schema"   
         ],
         capture_output = True,
@@ -242,7 +357,8 @@ if args.output_annotated_miraclegrue_config_file:
     schema = json.loads(process.stdout)
     # oldSchema = json.load(open(pathlib.Path(args.old_miraclegrue_config_schema_file[0]).resolve(),'r'))
     # oldMiraclegrueConfig = json.load(open(pathlib.Path(args.old_miraclegrue_config_file[0]).resolve(),'r'))
-    
+    # we might consider running the config through miraclegrue and letting mircalegrue remove any invalid values.
+
     with open(pathlib.Path(args.output_annotated_miraclegrue_config_file[0]).resolve() ,'w') as annotatedConfigFile:
         annotatedConfigFile.write(
             dumpsAnnotatedHjsonValue(
@@ -252,14 +368,17 @@ if args.output_annotated_miraclegrue_config_file:
             )
         )
 
-with tempfile.NamedTemporaryFile(mode='w', delete=False) as temporary_miraclegrue_config_file:
-    json.dump(miraclegrueConfig, temporary_miraclegrue_config_file, sort_keys=True, indent=4)
-    temporary_miraclegrue_config_file_path = pathlib.Path(temporary_miraclegrue_config_file.name).resolve()
+# generate several temporary files, which we will use during the slicing/makerbot packaging process
+tempFilePaths = dict()
+for key in ["miraclegrue_config", "metadata", "jsontoolpath"]:
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=(".jsontoolpath" if key == "jsontoolpath" else "")) as x:
+        tempFilePaths[key] = pathlib.Path(x.name).resolve()
+tempThumbnailDirectory = tempfile.TemporaryDirectory()
 
-outputToolpathFilePaths = [output_makerbot_file_path]
 
+json.dump(miraclegrueConfig, open(tempFilePaths["miraclegrue_config"],'w'), sort_keys=True, indent=4)
 
-if output_makerbot_file_path:
+if False and output_makerbot_file_path:
     subprocessArgs = [
         str(makerware_python_executable_path),
         str(makerware_sliceconfig_path),
@@ -299,34 +418,43 @@ if output_makerbot_file_path:
     #         print(now.strftime("%Y-%m-%d %H:%M:%S") + " " + str(now.microsecond) + " " + ": " + output.strip())
     #         sys.stdout.flush()
 
+    progressBar = MyProgressBar("sliceconfig")
     for line in iter(process.stdout.readline, 'b'):
         if line:
-            #TO DO: attempt to interpret line as a json expression.
-            sys.stdout.write(line)
-            sys.stdout.flush()
-            # curiously, on some shells (for instance, the shell within notepad++ and git bash), 
-            # the output from this script was being accumulated in a  buffer and only dumped to stdout 
-            # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
+            #attempt to interpret line as a json expression.
+            jsonObject = None
+            try:
+                jsonObject: dict = json.loads(line)
+            except json.decoder.JSONDecodeError as error:
+                # sys.stdout.write(line); sys.stdout.flush()
+                # # curiously, on some shells (for instance, the shell within notepad++ and git bash), 
+                # # the output from this script was being accumulated in a  buffer and only dumped to stdout 
+                # # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
+                pass
+            else:
+                progressBar.setProgressAndUpdate(float(jsonObject.get("progress"))/100)
+
         else:
             break
-
-    print("\n")
-    print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
-    print("process.stdout: " + str(process.stdout))
-    print("process.stderr: " + str(process.stderr))
+    process.wait()
+    progressBar.setProgressAndUpdate(1)
+    progressBar.finish()
+    # print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
+    # print("process.stdout: " + str(process.stdout))
+    # print("process.stderr: " + str(process.stderr))
     print("process.returncode: " + str(process.returncode))
     print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
 
-if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_file_path: 
-    #TO DO: fill in the gcode generation process here.
+if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_file_path or output_makerbot_file_path: 
     subprocessArgs = [
-        str(miracle_grue_executable_path),
+        str(miraclegrue_executable_path),
         "--json-progress", # Display progress messages in JSON format
-        "--config=" + str(temporary_miraclegrue_config_file_path)
+        "--config=" + str(tempFilePaths["miraclegrue_config"])
     ]
+
     if output_gcode_file_path: subprocessArgs.append("--gcode-toolpath-output=" + str(output_gcode_file_path))
-    if output_json_toolpath_file_path: subprocessArgs.append("--json-toolpath-output=" + str(output_json_toolpath_file_path))
-    if output_metadata_file_path: subprocessArgs.append("--metadata-output=" + str(output_metadata_file_path))
+    if output_json_toolpath_file_path or output_makerbot_file_path: subprocessArgs.append("--json-toolpath-output=" + str(tempFilePaths["jsontoolpath"]))
+    if output_metadata_file_path or output_makerbot_file_path: subprocessArgs.append("--metadata-output=" + str(tempFilePaths["metadata"]))
 
     subprocessArgs.append(str(input_model_file_path))
      
@@ -339,24 +467,83 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
         stdout=subprocess.PIPE
     ) 
 
+    progressBar = MyProgressBar("miracle_grue")
     for line in iter(process.stdout.readline, 'b'):
         if line:
-            #TO DO: attempt to interpret line as a json expression.
-            sys.stdout.write(line)
-            sys.stdout.flush()
-            # curiously, on some shells (for instance, the shell within notepad++ and git bash), 
-            # the output from this script was being accumulated in a  buffer and only dumped to stdout 
-            # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
+            #attempt to interpret line as a json expression.
+            jsonObject = None
+            try:
+                jsonObject: dict = json.loads(line)
+            except json.decoder.JSONDecodeError as error:
+                # sys.stdout.write(line); sys.stdout.flush()
+                # # curiously, on some shells (for instance, the shell within notepad++ and git bash), 
+                # # the output from this script was being accumulated in a  buffer and only dumped to stdout 
+                # # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
+                pass
+            else:
+                progressBar.setProgressAndUpdate(float(jsonObject.get("totalPercentComplete"))/100)
         else:
             break
+    process.wait()
+    if output_metadata_file_path: shutil.copyfile(tempFilePaths["metadata"], output_metadata_file_path)
+    if output_json_toolpath_file_path: shutil.copyfile(tempFilePaths["jsontoolpath"], output_json_toolpath_file_path)
 
-    print("\n")
-    print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
-    print("process.stdout: " + str(process.stdout))
-    print("process.stderr: " + str(process.stderr))
+    progressBar.setProgressAndUpdate(1)
+    progressBar.finish()
+    # print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
+    # print("process.stdout: " + str(process.stdout))
+    # print("process.stderr: " + str(process.stderr))
     print("process.returncode: " + str(process.returncode))
 
-# print("process.stderr: " + json.dumps(json.loads(str(process.stderr))) )
+    if output_makerbot_file_path:
+        subprocessArgs = [
+            str(makerware_python_executable_path),
+            str(makerware_sliceconfig_path),
+            "--status-updates",
+            "--input=" + str(tempFilePaths["jsontoolpath"]),
+            "--output=" + str(output_makerbot_file_path),
+            "--machine_id=" + miraclegrueConfig['_bot'],
+            "--extruder_ids=" + ",".join(miraclegrueConfig['_extruders']),
+            "--material_ids=" + ",".join(miraclegrueConfig['_materials']),
+            "--profile=" + str(tempFilePaths["miraclegrue_config"]),
+            "--metadata=" + str(tempFilePaths["metadata"]),
+            # "--thumbnail-dir=" + str(pathlib.Path(tempThumbnailDirectory.name).resolve()),
+            # having nothing in the thumbnail dir causes an error.  Therefore, we will only pass the thumbnail-dir option if we have thumbnail images.
+            "package_makerbot"
+        ]
+
+        process = subprocess.Popen(
+            cwd=makerware_python_working_directory_path,
+            args=subprocessArgs,
+            # capture_output = True,
+            text=True,
+            stdout=subprocess.PIPE
+        )
+
+        progressBar = MyProgressBar("sliceconfig")
+        for line in iter(process.stdout.readline, 'b'):
+            if line:
+                #attempt to interpret line as a json expression.
+                jsonObject = None
+                try:
+                    jsonObject: dict = json.loads(line)
+                except json.decoder.JSONDecodeError as error:
+                    # sys.stdout.write(line); sys.stdout.flush()
+                    # # curiously, on some shells (for instance, the shell within notepad++ and git bash), 
+                    # # the output from this script was being accumulated in a  buffer and only dumped to stdout 
+                    # # once the process had completed.  The fix was to add the sys.stdout.flush() call above.
+                    pass
+                else:
+                    progressBar.setProgressAndUpdate(float(jsonObject.get("progress"))/100)
+            else:
+                break
+        process.wait()
+        progressBar.setProgressAndUpdate(1)
+        progressBar.finish()
+        # print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
+        print("process.returncode: " + str(process.returncode))
+
+
 
 
 
