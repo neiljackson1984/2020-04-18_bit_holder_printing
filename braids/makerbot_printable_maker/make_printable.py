@@ -78,8 +78,10 @@ parser.add_argument("--output_annotated_miraclegrue_config_file", action='store'
 parser.add_argument("--output_miraclegrue_config_diff_file", action='store', nargs=1, required=False, help="a report showing the difference between the config after applying the transform compared with the input config file.")
 parser.add_argument("--output_makerbot_file", action='store', nargs=1, required=False, help="the .makerbot file to be created.")
 parser.add_argument("--output_gcode_file", action='store', nargs=1, required=False, help="the .gcode file to be created.")
+parser.add_argument("--output_previewable_gcode_file", action='store', nargs=1, required=False, help="A gcode file that we will create by taking the gcode produced by miracle_grue and modifying it to produce a gcode file sutiable for previeiwing in the Cura slicer.")
 parser.add_argument("--output_json_toolpath_file", action='store', nargs=1, required=False, help="the .jsontoolpath file to be created.")
 parser.add_argument("--output_metadata_file", action='store', nargs=1, required=False, help="the .json metadata file to be created.")
+parser.add_argument("--output_miraclegrue_log_file", action='store', nargs=1, required=False, help="an output file to which to write the miraclegrue log.")
 
 
 
@@ -90,11 +92,13 @@ args, unknownArgs = parser.parse_known_args()
 input_model_file_path = pathlib.Path(args.input_model_file[0]).resolve()
 output_makerbot_file_path = (pathlib.Path(args.output_makerbot_file[0]).resolve() if args.output_makerbot_file else None)
 output_gcode_file_path = (pathlib.Path(args.output_gcode_file[0]).resolve() if args.output_gcode_file else None)
+output_previewable_gcode_file_path = (pathlib.Path(args.output_previewable_gcode_file[0]).resolve() if args.output_previewable_gcode_file else None)
 output_json_toolpath_file_path = (pathlib.Path(args.output_json_toolpath_file[0]).resolve() if args.output_json_toolpath_file else None)
 output_metadata_file_path = (pathlib.Path(args.output_metadata_file[0]).resolve() if args.output_metadata_file else None)
 # input_miraclegrue_config_overrides_file_path = (pathlib.Path(args.input_miraclegrue_config_overrides_file[0]).resolve() if args.input_miraclegrue_config_overrides_file else None)
 input_miraclegrue_config_transform_file_path = (pathlib.Path(args.input_miraclegrue_config_transform_file[0]).resolve() if args.input_miraclegrue_config_transform_file else None)
 output_miraclegrue_config_diff_file_path = (pathlib.Path(args.output_miraclegrue_config_diff_file[0]).resolve() if args.output_miraclegrue_config_diff_file else None)
+output_miraclegrue_log_file_path = (pathlib.Path(args.output_miraclegrue_log_file[0]).resolve() if args.output_miraclegrue_log_file else None)
 
 
 makerware_path = pathlib.Path(args.makerware_path[0]).resolve()
@@ -341,6 +345,24 @@ def dumpsAnnotatedHjsonValue(value, path, schema):
         returnValue += hjson.dumps(value) + "\n"
     return returnValue    
 
+
+def generatePreviewableGcode(inputFile, outputFile):
+    print("generating previewable gcode")
+    # change a-words to e-words
+    
+    # add a comment like ";LAYER_COUNT:49" before the first layer.
+    # add a comment like ";LAYER:-6" at the beginning of each layer
+
+    # add comments like:
+    #    ";TYPE:FILL"
+    #    ";TYPE:SKIN"
+    #    ";TYPE:SUPPORT"
+    #    ";TYPE:SUPPORT-INTERFACE"
+    #    ";TYPE:WALL-INNER"
+    #    ";TYPE:WALL-OUTER"
+
+    pass
+
 # if args.miraclegrue_config_schema_file and args.output_annotated_miraclegrue_config_file:
 if args.output_annotated_miraclegrue_config_file:
     # generate an annotated hjson version of the config file, by
@@ -370,7 +392,7 @@ if args.output_annotated_miraclegrue_config_file:
 
 # generate several temporary files, which we will use during the slicing/makerbot packaging process
 tempFilePaths = dict()
-for key in ["miraclegrue_config", "metadata", "jsontoolpath"]:
+for key in ["miraclegrue_config", "metadata", "jsontoolpath", "gcode"]:
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=(".jsontoolpath" if key == "jsontoolpath" else "")) as x:
         tempFilePaths[key] = pathlib.Path(x.name).resolve()
 tempThumbnailDirectory = tempfile.TemporaryDirectory()
@@ -452,9 +474,18 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
         "--config=" + str(tempFilePaths["miraclegrue_config"])
     ]
 
-    if output_gcode_file_path: subprocessArgs.append("--gcode-toolpath-output=" + str(output_gcode_file_path))
+    if output_gcode_file_path or output_previewable_gcode_file_path: subprocessArgs.append("--gcode-toolpath-output=" + str(tempFilePaths["gcode"]))
     if output_json_toolpath_file_path or output_makerbot_file_path: subprocessArgs.append("--json-toolpath-output=" + str(tempFilePaths["jsontoolpath"]))
     if output_metadata_file_path or output_makerbot_file_path: subprocessArgs.append("--metadata-output=" + str(tempFilePaths["metadata"]))
+    if output_miraclegrue_log_file_path: 
+        subprocessArgs.append("--log-file=" + str(output_miraclegrue_log_file_path))
+        subprocessArgs.append("--log-level=" + "FFF")
+        # --log-level level                     
+        # Verbosity of the slicer output log. 
+        # Must be one of ERROR, WARNING, INFO, 
+        # FINE, FINER, FINEST or E, W, I, F, FF, 
+        # FFF respectively
+        
 
     subprocessArgs.append(str(input_model_file_path))
      
@@ -485,15 +516,19 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
         else:
             break
     process.wait()
-    if output_metadata_file_path: shutil.copyfile(tempFilePaths["metadata"], output_metadata_file_path)
-    if output_json_toolpath_file_path: shutil.copyfile(tempFilePaths["jsontoolpath"], output_json_toolpath_file_path)
-
     progressBar.setProgressAndUpdate(1)
     progressBar.finish()
     # print("process.args: " + "\n" + indentAllLines("\n".join(process.args)))
     # print("process.stdout: " + str(process.stdout))
     # print("process.stderr: " + str(process.stderr))
     print("process.returncode: " + str(process.returncode))
+
+    if output_metadata_file_path: shutil.copyfile(tempFilePaths["metadata"], output_metadata_file_path)
+    if output_json_toolpath_file_path: shutil.copyfile(tempFilePaths["jsontoolpath"], output_json_toolpath_file_path)
+    if output_gcode_file_path: shutil.copyfile(tempFilePaths["gcode"], output_gcode_file_path)
+
+    if output_previewable_gcode_file_path:
+        generatePreviewableGcode(inputFile=open(tempFilePaths["gcode"],'r'),  outputFile=open(output_previewable_gcode_file_path,'w'))
 
     if output_makerbot_file_path:
         subprocessArgs = [

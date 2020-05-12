@@ -55,8 +55,10 @@ ${buildFolder}/%.makerbot: ${pathOfThisMakefile}/%.thing ${pathOfMakePrintableSc
 		--output_annotated_miraclegrue_config_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).miraclegrue_config_annotated.hjson)" \
 		--output_makerbot_file="$(call getFullyQualifiedWindowsStylePath,$@)" \
 		--output_gcode_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).gcode)" \
+		--output_previewable_gcode_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).previewable.gcode)" \
 		--output_metadata_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).meta.json)" \
-		--output_miraclegrue_config_diff_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).miraclegrue_config_diff)"
+		--output_miraclegrue_config_diff_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).miraclegrue_config_diff)" \
+		--output_miraclegrue_log_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).miraclegrue_log)" \
 	pscp "$(call getFullyQualifiedWindowsStylePath,$@)" "root@makerbot.ad.autoscaninc.com:${destinationDirectoryOnTheMakerbot}${uploadPrefix}$(notdir $@)"
 
 
