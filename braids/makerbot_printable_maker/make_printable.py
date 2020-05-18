@@ -25,6 +25,7 @@ import shutil
 # but this is not ideal because in terminals that do not support control codes, we see the literal control codes, which look like gobbledygook.
 class MyProgressBar(progress.bar.Bar):
     check_tty = False
+    hide_cursor = False
     suffix='%(percent)d%% - %(elapsed_td)s/%(estimatedTotalDuration_td)s'
     @property
     def estimatedTotalDuration(self):
@@ -43,6 +44,11 @@ class MyProgressBar(progress.bar.Bar):
         self.setProgress(newValue)
         self.update()
 
+    # overriding the original clearln() definition so as not to emit control codes.
+    def clearln(self): 
+        if self.file and self.is_tty():
+            # print('\r\x1b[K', end='', file=self.file)
+            print('\r', end='', file=self.file)
 
 
 
@@ -52,8 +58,7 @@ class MyProgressBar(progress.bar.Bar):
 
 
 
-
-
+ 
 
 
 
@@ -350,9 +355,36 @@ def dumpsAnnotatedHjsonValue(value, path, schema):
         returnValue += hjson.dumps(value) + "\n"
     return returnValue    
 
-
+#inputFile is a readable file-like object that is assumed to be a valid jsontoolpath file
+#output file is a writeable file-like object that is assumed to be the destination where we want to dump the gcode
 def generatePreviewableGcode(inputFile, outputFile):
     print("generating previewable gcode")
+    # read the jsontoolpath into memory (might it be better to do this in a way that does not require us to read the entire file into memory at once?)
+    toolpath = json.load(inputFile)
+    noodleType = None
+    layerNumber = None
+    lastUpperPosition = None
+    for item in toolpath:
+        if(item['command']):
+            if(item['command']['function'] == 'move'):
+                # look at tags to figure out whether we need to emit a ";TYPE:..." line
+                outputFile.write(
+                    "G1 X{} Y{} Z{} E{} F{}".format(
+                        item['command']['parameters']['x'],
+                        item['command']['parameters']['y'],
+                        item['command']['parameters']['z'],
+                        item['command']['parameters']['a'],
+                        item['command']['parameters']['feedrate'] * 60
+                    ) + "\n"
+                )
+            elif(item['command']['function'] == 'comment'):
+                #TODO: look for item['command']['parameters']['comment'] that looks like "Upper Position  0.05", and increment layer number upon change.
+                pass
+            elif(item['command']['function'] == 'set_toolhead_temperature'):
+                pass
+            else:
+                pass
+            
     # change a-words to e-words
     
     # add a comment like ";LAYER_COUNT:49" before the first layer.
@@ -473,14 +505,13 @@ if False and output_makerbot_file_path:
     print("temporary_miraclegrue_config_file_path: " + str(temporary_miraclegrue_config_file_path))
 
 if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_file_path or output_makerbot_file_path: 
-    subprocessArgs = [
-        str(miraclegrue_executable_path),
+    subprocessArgs = [str(miraclegrue_executable_path),
         "--json-progress", # Display progress messages in JSON format
         "--config=" + str(tempFilePaths["miraclegrue_config"])
     ]
 
-    if output_gcode_file_path or output_previewable_gcode_file_path: subprocessArgs.append("--gcode-toolpath-output=" + str(tempFilePaths["gcode"]))
-    if output_json_toolpath_file_path or output_makerbot_file_path: subprocessArgs.append("--json-toolpath-output=" + str(tempFilePaths["jsontoolpath"]))
+    if output_gcode_file_path: subprocessArgs.append("--gcode-toolpath-output=" + str(tempFilePaths["gcode"]))
+    if output_json_toolpath_file_path or output_makerbot_file_path or output_previewable_gcode_file_path: subprocessArgs.append("--json-toolpath-output=" + str(tempFilePaths["jsontoolpath"]))
     if output_metadata_file_path or output_makerbot_file_path: subprocessArgs.append("--metadata-output=" + str(tempFilePaths["metadata"]))
     if output_miraclegrue_log_file_path: 
         subprocessArgs.append("--log-file=" + str(output_miraclegrue_log_file_path))
@@ -536,7 +567,7 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
     if output_gcode_file_path: shutil.copyfile(tempFilePaths["gcode"], output_gcode_file_path)
 
     if output_previewable_gcode_file_path:
-        generatePreviewableGcode(inputFile=open(tempFilePaths["gcode"],'r'),  outputFile=open(output_previewable_gcode_file_path,'w'))
+        generatePreviewableGcode(inputFile=open(tempFilePaths["jsontoolpath"],'r'),  outputFile=open(output_previewable_gcode_file_path,'w'))
 
     if output_makerbot_file_path:
         subprocessArgs = [
