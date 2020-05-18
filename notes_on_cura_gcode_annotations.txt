@@ -1,0 +1,109 @@
+2020-05-16
+
+The Cura g-code generator producers and, more importantly for my purposes, the Cura toolpath previewer consumes
+specially formatted comments in the g-code in order to classify each "move" (each change in position of the motion-control
+system (including the extruder motor)) into one of several categories.  The categories are called "_layer_type"'s, although
+they really should be called something like "move types" because you can have moves of several different types occur on a single 
+"layer" (i.e. z level).
+
+What I am calling a "move" corresponds to an element of the "path" list in FlavorParser.  An element of a path list
+is a structure that has properties "x", "y", "z", and "e" (these four properpties are the coordinates of the destination position of the move (or possibly the start position of the move - I am not sure which))
+and also has properties "f" and "_layer_type" which encode the move's feedrate and _layer_type.
+These property names are my own invention.  An element of a path list is stored as a 6-element list of elements that are allowed to be floats or ints.
+I suspect that the path list contains the complete set of information that the Cure toolpath previewer uses to produce the visualization.
+
+
+The valid values of _layer_type (FlavorParser::_layer_type) are:
+    LayerPolygon.InsetXType             (special comment line: ";TYPE:WALL-INNER"         )
+    LayerPolygon.Inset0Type             (special comment line: ";TYPE:WALL-OUTER"         )
+    LayerPolygon.SkinType               (special comment line: ";TYPE:SKIN"               )
+    LayerPolygon.SkirtType              (special comment line: ";TYPE:SKIRT"              )
+    LayerPolygon.SupportType            (special comment line: ";TYPE:SUPPORT"            )
+    LayerPolygon.InfillType             (special comment line: ";TYPE:FILL"               )
+    LayerPolygon.SupportInterfaceType   (special comment line: ";TYPE:SUPPORT-INTERFACE"  )
+    LayerPolygon.PrimeTowerType         (special comment line: ";TYPE:PRIME-TOWER"        )
+    LayerPolygon.MoveRetractionType
+    LayerPolygon.MoveCombingType
+    
+the last two possible _leyer_type values in the list above, "MoveRetractionType" and "MoveCombingType",
+do not have corresponding special comment codes to declare moves of those types.  Rather, moves of those types 
+are implied by extrusion displacement being zero or negative (actually, I think "MoveCombingType"
+is only implied by a g-code line lacking an E-word).
+
+Cura's g-code previewer computes the cross-sectional width and height of each segment of the path by looking at the length of filament 
+extruded in the move, the diameter of the filament (how does it know the diameter?), the _current_layer_thickness (i.e. the layer height) (which is updated whenever there is a change in
+the z position, except, oddly, not if the jump in z position is greater than or equal to 1.5 millimeters.), which the gcode interpreter takes as an indication that some sort of "priming" (i.e. extruding into a deep well, I think)
+ is going on. -- this seems a little bit heavy-handed)
+
+A special comment line that declares a _layer_type must begin with ";TYPE:", and the remainder of the line, after being trimmed of whitespace, must be one of "WALL-INNER", "WALL-OUTER", etc.    
+
+Effectively, the g-code previewer will look through the g-code for all ";LAYER:n" declarations.  The lowest such n will be called "Layer 1" in the user interface slider.  Then,
+the layer numbers appearing the UI will be 1 + n-lowestN.  (i.e. the range of n's appearing in the g-code special comments will be remapped to a new range that starts at 1)
+
+A line starting with ";LAYER_COUNT:", then having a number (e.g. ";LAYER_COUNT:49") is not a special code that the previewer reads, even though
+it looks like it could be.
+Similarly, the line ";Layer height: 0.2" also has no effect on the preview.
+
+The gcode annotation comments that appear in the gcode output of miracle_grue include blocks like this:
+; Layer Section 3 (24) 
+; Material 0 
+; Lower Position  0.15 
+; Upper Position  0.35 
+; Thickness       0.2 
+; Width           0.4 
+
+There is exactly one of these blocks having any given "layer section" number.  the layer section numbers increase sequentially 
+in an unbroken sequence throughout the entire g-code file starting with 0.
+There can be, and usually are, multiple "layer sections" per layer.
+I think we can probably simply watch for the occurence of lines of the form "; Upper Position  x"
+Every time we see such a line having an x different from the last line of that form that we saw,
+we will insert a ";LAYER:n" line and increment our internal layer counter.
+
+As for the end-of-line special comments that miracle-grue inserts at the end of g-code line
+to indicate the type of that move, several of these end-of-line comments indicate retraction or "travel" moves
+we can safely ignore these comments, because the g-code previewer will, by design, detect and categorize 
+travel moves (i.e. change in xyz position with no change in e) and and retraction/restart moves (i.e.
+ changes in e position with no change in xyz) automatically.
+What we need to be on the lookout for are the end-of-line comments that need to be mapped
+to one of the _layer_type's other than MoveRetractionType and MoveCombingType (i.e.
+those _layer_type's correpsonding to extruding some noodle.)
+
+Here is the (hopefully complete) list of end-of-line comments inserted by miracle_grue
+that correspond to "noodle-producing" moves:
+Infill
+Inset
+Connection
+Support
+
+
+
+
+
+
+======= excerpts from Cura's FlavorParser.py: =========
+self._type_keyword = ";TYPE:"  
+self._layer_keyword = ";LAYER:"
+if line.find(self._type_keyword) == 0:
+    type = line[len(self._type_keyword):].strip()
+    if type == "WALL-INNER":
+        self._layer_type = LayerPolygon.InsetXType
+    elif type == "WALL-OUTER":
+        self._layer_type = LayerPolygon.Inset0Type
+    elif type == "SKIN":
+        self._layer_type = LayerPolygon.SkinType
+    elif type == "SKIRT":
+        self._layer_type = LayerPolygon.SkirtType
+    elif type == "SUPPORT":
+        self._layer_type = LayerPolygon.SupportType
+    elif type == "FILL":
+        self._layer_type = LayerPolygon.InfillType
+    elif type == "SUPPORT-INTERFACE":
+        self._layer_type = LayerPolygon.SupportInterfaceType
+    elif type == "PRIME-TOWER":
+        self._layer_type = LayerPolygon.PrimeTowerType
+    else:
+        Logger.log("w", "Encountered a unknown type (%s) while parsing g-code.", type)
+
+
+
+self._filament_diameter = global_stack.extruders[str(self._extruder_number)].getProperty("material_diameter", "value")

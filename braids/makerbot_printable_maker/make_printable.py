@@ -19,7 +19,12 @@ import jsondiff_by_makerbot
 import shutil
 
 
+# This progress bar library is deficient in that it does not make any effort to output any sort of progress indicator in the case where the 
+# terminal is not a tty (i.e. in the case where the terminal does not support terminal control codes)
+# As a hack, I have simply disable the tty checkinbg so that terminal control codes are blindly emitted, whither the terminal supports them or not.
+# but this is not ideal because in terminals that do not support control codes, we see the literal control codes, which look like gobbledygook.
 class MyProgressBar(progress.bar.Bar):
+    check_tty = False
     suffix='%(percent)d%% - %(elapsed_td)s/%(estimatedTotalDuration_td)s'
     @property
     def estimatedTotalDuration(self):
@@ -360,7 +365,7 @@ def generatePreviewableGcode(inputFile, outputFile):
     #    ";TYPE:SUPPORT-INTERFACE"
     #    ";TYPE:WALL-INNER"
     #    ";TYPE:WALL-OUTER"
-
+    #
     pass
 
 # if args.miraclegrue_config_schema_file and args.output_annotated_miraclegrue_config_file:
@@ -485,6 +490,7 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
         # Must be one of ERROR, WARNING, INFO, 
         # FINE, FINER, FINEST or E, W, I, F, FF, 
         # FFF respectively
+        subprocessArgs.append("--no-log-format")
         
 
     subprocessArgs.append(str(input_model_file_path))
@@ -498,8 +504,9 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
         stdout=subprocess.PIPE
     ) 
 
+    # progressBar = MyProgressBar("miracle_grue", file=sys.stdout)
     progressBar = MyProgressBar("miracle_grue")
-    for line in iter(process.stdout.readline, 'b'):
+    for line in iter(process.stdout.readline, 'b'): 
         if line:
             #attempt to interpret line as a json expression.
             jsonObject = None
@@ -513,6 +520,7 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
                 pass
             else:
                 progressBar.setProgressAndUpdate(float(jsonObject.get("totalPercentComplete"))/100)
+                sys.stdout.flush()
         else:
             break
     process.wait()

@@ -43,7 +43,7 @@ default: $(makerbotFiles)
 		# --output_json_toolpath_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).jsontoolpath)" \
 		# --output_metadata_file="$(call getFullyQualifiedWindowsStylePath,$(dir $@)$(basename $(notdir $@)).meta.json)"
 
-${buildFolder}/%.makerbot: ${pathOfThisMakefile}/%.thing ${pathOfMakePrintableScript} | ${buildFolder} ${venv} 
+${buildFolder}/%.makerbot: ${pathOfThisMakefile}/%.thing ${pathOfMakePrintableScript} ${miraclegrueConfigFile} ${miraclegrueConfigTransformFile} | ${buildFolder} ${venv} 
 	@echo "====== BUILDING $@ from $< ======= "
 	cd "$(abspath $(dir ${pathOfMakePrintableScript}))" > /dev/null 2>&1; \
 	pipenv run python \
