@@ -356,38 +356,144 @@ def dumpsAnnotatedHjsonValue(value, path, schema):
     return returnValue    
 
 #inputFile is a readable file-like object that is assumed to be a valid jsontoolpath file
-#output file is a writeable file-like object that is assumed to be the destination where we want to dump the gcode
-def generatePreviewableGcode(inputFile, outputFile):
-    print("generating previewable gcode")
+#outputGcodeFile is a writeable file-like object that is assumed to be the destination where we want to dump the gcode
+#progressReportingCallback, if given, is expected to be a function that will be passed a single argument:
+# a float representing the completion ratio.
+def generatePreviewableGcode(inputJsontoolpathFile, outputGcodeFile, progressReportingCallback = None):
+    # print("generating previewable gcode")
     # read the jsontoolpath into memory (might it be better to do this in a way that does not require us to read the entire file into memory at once?)
-    toolpath = json.load(inputFile)
+    toolpath = json.load(inputJsontoolpathFile)
     noodleType = None
-    layerNumber = None
+    layerNumber = 0
     lastUpperPosition = None
-    for item in toolpath:
-        if(item['command']):
-            if(item['command']['function'] == 'move'):
+    allTags: set = set()
+    # allFunctions: set = set()
+    
+    for index in range(len(toolpath)):
+        # print("now working on item " + str(index))
+        item = toolpath[index]
+        command = item.get('command')
+        if command:
+            function = command['function']
+            # allFunctions.add(function)
+            if function == 'move':
                 # look at tags to figure out whether we need to emit a ";TYPE:..." line
-                outputFile.write(
+                tags = set(command['tags'])
+                allTags.update(tags)
+
+                # tags encountered in a typical jsontoolpath:
+                #   BeadMode External
+                #   BeadMode Internal
+                #   BeadMode Internal Thick
+                #   BeadMode User3
+                #   Connection
+                #   Infill
+                #   Inset
+                #   Invalid Move
+                #   Leaky Travel Move
+                #   Long Restart
+                #   Restart
+                #   Retract
+                #   Support
+                #   Trailing Extrusion Move
+                #   Travel Move
+
+                # we need to map these (or, more accurately, combinations of these tags) to 
+                # one of the following values for noodleType:
+                # The travel and retract moves are detected implicitly by the cura gcode previewer, so they 
+                # don't have an explicit noodleType (which is one of the reasons I chose the name "noodleType":
+                # these categroies only apply to moves that produce a noodle.
+                #
+                #    WALL-INNER         
+                #    WALL-OUTER         
+                #    SKIN               
+                #    SKIRT              
+                #    SUPPORT            
+                #    FILL              
+                #    SUPPORT-INTERFACE  
+                #    PRIME-TOWER        
+
+
+
+                if "Support" in tags:
+                    thisNoodleType = "SUPPORT"
+                elif "Infill" in tags:
+                    thisNoodleType = "FILL"
+                elif "Inset" in tags:
+                    #there are two possible senses for the words inner/internal and outer/external.  On the one hand, we might be
+                    #  trying to distinguish between faces of holes vs. "outer" faces.  On the other hand, we might be
+                    #  referring to the outermost shell vs. inner shells.
+                    # I am not entirely sure if Cura's concept of WALL-OUTER vs. WALL-INNER is the same as MAkerbot's concept of BeadMode External
+                    
+                    tagsContainingExternal = (tag for tag in tags if "External" in tag)
+                    tagsContainingInternal = (tag for tag in tags if "Internal" in tag)
+                    print("\n" + str(len(list(tagsContainingExternal)))  + "\t" + str(len(list(tagsContainingInternal))) + "\n")
+                    if tagsContainingExternal:
+                        thisNoodleType = "WALL-OUTER"
+                    elif tagsContainingInternal:
+                        thisNoodleType = "WALL-INNER"
+                    else:
+                        print(
+                            "strangely, at index " + str(index) + " in the json toolpath, we have encountered a \"move\" "
+                            + "command having the \"Inset\" tag where none of the tags contains the word \"External\" "
+                            + "and none of the tags contains the word \"Internal\"."
+                        )
+                        #we'll blindly assume that we are dealing with "WALL-OUTER"
+                        thisNoodleType = "WALL-OUTER"
+                        pass
+                else:
+                    #the default is to assume that noodleType has not changed.
+                    thisNoodleType = noodleType
+
+                #As far as I can tell, there is no good way to detect which moves in the jsontoolpath correspond to Cura's concepts of SKIN, SKIRT, SUPPORT-INTERFACE, and PRIME-TOWER. 
+
+                if thisNoodleType != noodleType:
+                    noodleType =  thisNoodleType
+                    outputGcodeFile.write(";TYPE:" + str(noodleType) + "\n")
+
+                outputGcodeFile.write(
                     "G1 X{} Y{} Z{} E{} F{}".format(
-                        item['command']['parameters']['x'],
-                        item['command']['parameters']['y'],
-                        item['command']['parameters']['z'],
-                        item['command']['parameters']['a'],
-                        item['command']['parameters']['feedrate'] * 60
+                        command['parameters']['x'],
+                        command['parameters']['y'],
+                        command['parameters']['z'],
+                        command['parameters']['a'],
+                        command['parameters']['feedrate'] * 60
                     ) + "\n"
                 )
-            elif(item['command']['function'] == 'comment'):
-                #TODO: look for item['command']['parameters']['comment'] that looks like "Upper Position  0.05", and increment layer number upon change.
+            elif function == 'comment':
+                comment: str = command['parameters']['comment']
+                outputGcodeFile.write("; " + comment + "\n")
+                upperPositionPrefix = "Upper Position"
+
+                #watch for a comment that looks like "Upper Position  0.05", and, upon change,
+                # increment layer number and emit a ";LAYER:" comment.
+                if comment.startswith(upperPositionPrefix):
+                    thisUpperPosition = float( 
+                        re.search( pattern='[0123456789\.\+\-]+',  string=comment[len(upperPositionPrefix):]   ).group(0)
+                    )   
+                    if thisUpperPosition != lastUpperPosition:
+                        layerNumber += 1
+                        outputGcodeFile.write(";LAYER:" + str(layerNumber) + "\n")
+                        lastUpperPosition = thisUpperPosition
+                    else:
+                        # if we get here, then we must have encountered an  "Upper Position" comment
+                        # with the same value as the last "Upper Position" comment.
+                        pass
+                
+            elif function == 'set_toolhead_temperature':
                 pass
-            elif(item['command']['function'] == 'set_toolhead_temperature'):
+            elif function == 'toggle_fan':
+                pass
+            elif function == 'fan_duty':
                 pass
             else:
                 pass
-            
-    # change a-words to e-words
+        if progressReportingCallback: progressReportingCallback((index + 1)/len(toolpath))
+    # print("\n") 
+    # print("encountered the following tags:\n" + indentAllLines("\n".join(sorted(allTags))) + "\n")        
+    # print("encountered the following functions:\n" + indentAllLines("\n".join(sorted(allFunctions))) + "\n")        
+
     
-    # add a comment like ";LAYER_COUNT:49" before the first layer.
     # add a comment like ";LAYER:-6" at the beginning of each layer
 
     # add comments like:
@@ -398,7 +504,7 @@ def generatePreviewableGcode(inputFile, outputFile):
     #    ";TYPE:WALL-INNER"
     #    ";TYPE:WALL-OUTER"
     #
-    pass
+
 
 # if args.miraclegrue_config_schema_file and args.output_annotated_miraclegrue_config_file:
 if args.output_annotated_miraclegrue_config_file:
@@ -567,8 +673,13 @@ if output_gcode_file_path or output_json_toolpath_file_path or output_metadata_f
     if output_gcode_file_path: shutil.copyfile(tempFilePaths["gcode"], output_gcode_file_path)
 
     if output_previewable_gcode_file_path:
-        generatePreviewableGcode(inputFile=open(tempFilePaths["jsontoolpath"],'r'),  outputFile=open(output_previewable_gcode_file_path,'w'))
-
+        progressBar = MyProgressBar("gcode")
+        generatePreviewableGcode(
+            inputJsontoolpathFile=open(tempFilePaths["jsontoolpath"],'r'),  
+            outputGcodeFile=open(output_previewable_gcode_file_path,'w'), 
+            progressReportingCallback=progressBar.setProgressAndUpdate
+        )
+        progressBar.finish()
     if output_makerbot_file_path:
         subprocessArgs = [
             str(makerware_python_executable_path),
