@@ -427,7 +427,7 @@ def generatePreviewableGcode(inputJsontoolpathFile, outputGcodeFile, progressRep
                     
                     tagsContainingExternal = (tag for tag in tags if "External" in tag)
                     tagsContainingInternal = (tag for tag in tags if "Internal" in tag)
-                    print("\n" + str(len(list(tagsContainingExternal)))  + "\t" + str(len(list(tagsContainingInternal))) + "\n")
+                    # print("\n" + str(len(list(tagsContainingExternal)))  + "\t" + str(len(list(tagsContainingInternal))) + "\n")
                     if tagsContainingExternal:
                         thisNoodleType = "WALL-OUTER"
                     elif tagsContainingInternal:
